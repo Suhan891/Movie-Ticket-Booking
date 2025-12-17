@@ -34,10 +34,10 @@ Frontend folder structure
 Backend folder structure
 
 
-# Usage Guide(later)
-Explain to register/login
-Explain to book tickets
-Explain to view bookings
+# Usage Guide
+ to register/login
+ to book tickets
+ to view bookings
 
 # API Endpoints
 Authentication routes
@@ -45,10 +45,10 @@ Movie routes
 Booking routes
 
 # Contributing
- others can contribute(How)
+ others can contribute
 
 # License
 License type (MIT, etc.)
 
 # Contact/Author
-Your GitHub profile or contact information
+My GitHub profile or contact information
