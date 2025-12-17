@@ -39,7 +39,7 @@ Explain to register/login
 Explain to book tickets
 Explain to view bookings
 
-# API Endpoints (if backend)
+# API Endpoints
 Authentication routes
 Movie routes
 Booking routes
