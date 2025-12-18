@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { StarIcon } from '@heroicons/react/24/solid';
+import timeFormat from '../lib/timeFormat.js'
 
 export const MovieCard = ({ movie }) => {
   const navigate = useNavigate();
@@ -28,7 +29,7 @@ export const MovieCard = ({ movie }) => {
       <p className="text-sm text-gray-400 mt-2">
         {new Date(movie.release_date).getFullYear()} ·{' '}
         {movie.genres?.slice(0, 2).map(g => g.name).join(' | ')} ·{' '}
-        {movie.runtime} min
+        {timeFormat(movie.runtime)}
       </p>
 
       <div className="flex items-center justify-between mt-4 pb-3">

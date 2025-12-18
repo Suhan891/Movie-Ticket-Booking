@@ -4,8 +4,12 @@ import {assets} from '../assets/assets'
 import {SearchIcon,XIcon,MenuIcon, User} from 'lucide-react'
 
 
+
 const Navbar = ({isLogin}) => {
   const [isOpen, setIsOpen] = useState(false)
+
+  const [isDashBoard,setIsDashBoard] = useState(false)
+
   return (
     <div className='fixed top-0 left-0 z-50 w-full flex items-center
       justify-between px-6 md:px-16 1g:px-36 py-5'>
@@ -26,60 +30,14 @@ const Navbar = ({isLogin}) => {
       <SearchIcon className='max-md:hidden w-6 h-6 cursor-pointer'/>
       {!isLogin ? <button className='px-4 py-1 sm:px-7 sm:py-2 bg-primary
       hover:bg-primary-dull transition rounded-full font-medium
-      cursor-pointer'>Login</button>  : <User /> }
-
-        import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { StarIcon } from '@heroicons/react/24/solid';
-
-export const MovieCard = ({ movie }) => {
-  const navigate = useNavigate();
-
-  const goToMovie = () => {
-    navigate(`/movies/${movie._id}`);
-    window.scrollTo(0, 0);
-  };
-
-  return (
-    <div className="flex flex-col justify-between p-3 bg-gray-800 rounded-2xl
-      hover:-translate-y-1 transition duration-300 w-64">
-
-      <img
-        onClick={goToMovie}
-        src={movie.backdrop_path}
-        alt={movie.title}
-        className="rounded-lg h-52 w-full object-cover cursor-pointer"
-      />
-
-      <p className="font-semibold mt-2 truncate">
-        {movie.title}
-      </p>
-
-      <p className="text-sm text-gray-400 mt-2">
-        {new Date(movie.release_date).getFullYear()} ·{' '}
-        {movie.genres?.slice(0, 2).map(g => g.name).join(' | ')} ·{' '}
-        {movie.runtime} min
-      </p>
-
-      <div className="flex items-center justify-between mt-4 pb-3">
-        <button
-          onClick={goToMovie}
-          className="px-4 py-2 text-xs bg-primary hover:bg-primary-dull transition
-          rounded-full font-medium cursor-pointer"
-        >
-          Buy Tickets
-        </button>
-
-        <p className="flex items-center gap-1 text-sm text-gray-400 pr-1">
-          <StarIcon className="w-4 h-4 text-primary fill-primary" />
-          {movie.vote_average.toFixed(1)}
-        </p>
-      </div>
-
-    </div>
-  );
-};
-
+      cursor-pointer'>Login</button>  : <User className='cursor-pointer' onClick={()=> setIsDashBoard(!isDashBoard)} />
+      // {!isDashBoard && (
+      //   <div className="h-52 w-20 bg-amber-100 text-black rounded-2xl ">
+      //     <div></div>
+      //   </div>
+      // )}
+      }
+      
 
       </div>
      <MenuIcon
