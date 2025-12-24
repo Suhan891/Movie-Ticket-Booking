@@ -2,20 +2,17 @@ const nodemailer = require("nodemailer")
 
 const sendEmail = async ({to,subject,html})=>{
     if(!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASSWORD){
-        return res.status(500).json({
-            success: false,
-            message: "MailTrap Requirements are not fulfilled"
-        })
+        throw new Error("Mailtrap Requiremnets are not fullfilled")
     }
 
     const host = process.env.SMTP_HOST
-    const port = process.env.PORT
+    const port = process.env.SMTP_PORT
     const user = process.env.SMTP_USER
     const pass = process.env.SMTP_PASSWORD
     const from = process.env.SMTP_EMAIL_FROM
 
 
-    const transporter = nodemailer.create({
+    const transporter = nodemailer.createTransport({
         host,
         port,
         secure: false,
@@ -25,7 +22,7 @@ const sendEmail = async ({to,subject,html})=>{
         }
     })
 
-    await transporter.sendEmail({
+    await transporter.sendMail({
         from,
         to,
         subject,

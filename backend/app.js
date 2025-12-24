@@ -2,9 +2,10 @@ require("dotenv").config()
 const express = require("express")
 const app = express();
 const port = process.env.PORT || 8080;
-const dotenv = require("dotenv").config();
 const cookieParser = require("cookie-parser");
 const dbConnect = require("./config/db");
+
+const userRouter = require("./routes/user");
 
 app.get("/",(req,res)=>{
     res.send("Movie Booking ticket")
@@ -12,6 +13,8 @@ app.get("/",(req,res)=>{
 
 app.use(express.json())
 app.use(cookieParser());
+
+app.use("/user",userRouter)
 
 app.listen(port,()=>{
     console.log(`Listening to port ${port}`);
