@@ -96,8 +96,8 @@ module.exports.verifyEmail = async(req,res)=>{
         const user = await User.findById(payload._id)
         if(!user) return res.status(404).json({success: false, message:"User not found with token"})
 
-        if(!user.isEmailVerified)
-            return res.status(400).json({success: false, message:"User is already verified"})
+        if(user.isEmailVerified)
+            return res.status(400).json({success: false, message:"Email is already verified"})
 
         user.isEmailVerified = true
         await user.save()
@@ -162,7 +162,7 @@ module.exports.loginUser = async(req,res)=>{
             httpOnly: true,
             secure: process.env.NODE_ENV == "production",
             sameSite: "lax",
-            maxAge: 7*24*60*60
+            maxAge: 7*24*60*60*1000
         })
 
         return res.status(200).json({
