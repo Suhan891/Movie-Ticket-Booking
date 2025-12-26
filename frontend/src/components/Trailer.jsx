@@ -6,29 +6,38 @@ import { CirclePlay } from 'lucide-react';
 
 const TrailersSection = () => {
   const [currentTrailer, setCurrentTrailer] = useState(dummyTrailers[0]);
+  
 
   return (
     <div className='px-6 md:px-16 lg:px-24 xl:px-44 py-20 overflow-hidden'>
-      <p className='text-gray-300 font-medium text-lg max-w-[960px] mx-auto'>
+      <p className='text-gray-300 font-medium text-lg max-w-240 mx-auto'>
         Trailers
       </p>
 
       <div className='relative mt-6'>
-        <BlurCircle top='-100px' right='-100px' />
-        <ReactPlayer
+        {/* <BlurCircle top='-100px' right='-100px' /> */}
+        {/* <ReactPlayer
+        className='z-10'
   url={currentTrailer.videoUrl}
   playing={true}
   muted={true}
   playsinline
   controls={true}
   width="100%"
-  height="360px"
+  height="420px"
   config={{
     youtube: {
       playerVars: { autoplay: 1 }
     }
   }}
+/> */}
+<ReactPlayer
+  url={currentTrailer.videoUrl}
+  controls
+  width="100%"
+  height="420px"
 />
+
 {/* <ReactPlayer
   url="https://www.youtube.com/watch?v=ysz5S6PUM-U"
   playing

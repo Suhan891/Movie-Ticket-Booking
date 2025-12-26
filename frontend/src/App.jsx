@@ -11,9 +11,10 @@ import Favourite from './pages/Favourite'
 import Footer from './components/Footer'
 
 import Register from './components/Register'
+import NoPage from './pages/NoPage'
 
 function App() {
-  const isLogin = true;
+  const isLogin = false;
   const isAdmin = useLocation().pathname.startsWith('/admin');
   return (
     <>
@@ -21,10 +22,11 @@ function App() {
       <Routes>{!isLogin && <Route path="/register" element={<Register />} />}
         <Route path="/" element={<Home />} />
         <Route path="/movies" element={<Movie />} />
-        <Route path="/movie/:id" element={<MovieDetails />} />
+        <Route path="/movies/:id" element={<MovieDetails />} />
         <Route path="/my-booking" element={<MyBooking />} />
         <Route path="/movie/:id/:date" element={<SeatLayout />} />
         <Route path="/favourites" element={<Favourite/>} />
+        <Route path="/*" element={<NoPage/>} />
       </Routes>
       {!isAdmin && <Footer />}
     </>
