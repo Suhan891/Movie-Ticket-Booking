@@ -1,6 +1,6 @@
 const sendEmail = require("../lib/email");
 const {hashPassword,verifyPassword} = require("../lib/hashPassword");
-const createToken = require("../lib/token");
+const {createToken,verifyAccessToken, createRefresherToken, verifyRefreshToken} = require("../lib/token");
 const User = require("../models/user");
 const jwt = require("jsonwebtoken")
 
@@ -49,13 +49,13 @@ module.exports.registerUser = async(req,res)=>{
 
         console.log("USER CREATED:", user);
     
-        const createToken = jwt.sign(
+        const token = jwt.sign(
             {_id:user._id},
             process.env.JWT_SECRET,
             {expiresIn: "1d"}
         )
-    
-        const verifyUrl = `${getAppUrl()}/auth/email-verify?token=${createToken}`
+        // Changed auth to user
+        const verifyUrl = `${getAppUrl()}/user/email-verify?token=${token}`
     
         await sendEmail({
             to: user.email,
@@ -67,7 +67,7 @@ module.exports.registerUser = async(req,res)=>{
         return res.status(200).json({
             success: true,
             message: "Registration successfull",
-            // user
+            user
         })
     } catch (error) {
         console.log(error);
@@ -110,7 +110,7 @@ module.exports.verifyEmail = async(req,res)=>{
 
     } catch (error) {
         return res.status(500).json({
-            success: true,
+            success: false,
             message: "Email Verification server Error",
             error
         })
@@ -141,15 +141,17 @@ module.exports.loginUser = async(req,res)=>{
         const user = await User.findOne({email: modifiedEmail})
 
         if(!user)
-            return res.status(404).json({success: false, message:"User not found"})
+            return res.status(400).json({success: false, message:"User not found"})
 
         const isPassword = await verifyPassword({pass:password, existPass:user.password})
         if(!isPassword)
-            return res.status(404).json({success: false, message:"Invalid Password"})
+            return res.status(400).json({success: false, message:"Invalid Password"})
 
         if (!user.isEmailVerified) {
             return res.status(403).json({success: false, message: "Please verify your email before logging in..." });
         }
+        // console.log("Login of a verified user");
+        
 
         const refreshToken = createToken({
             userId: user._id,
@@ -167,7 +169,7 @@ module.exports.loginUser = async(req,res)=>{
 
         return res.status(200).json({
         message: "Login successfully done",
-        accessToken,
+        refreshToken,
         user: {
             id: user.id,
             email: user.email,
@@ -187,3 +189,77 @@ module.exports.loginUser = async(req,res)=>{
     }
 }
 
+module.exports.refreshToken = async (req, res) => {
+  try {
+    const token = req.cookies?.["refresh-token"];
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: "Refresh token not found"
+      });
+    }
+
+    const payload = verifyRefreshToken(token);
+
+    const user = await User.findById(payload.userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    if (user.tokenVersion !== payload.tokenVersion) {
+      return res.status(401).json({
+        success: false,
+        message: "Token revoked — please login again"
+      });
+    }
+
+    // rotate refresh token
+    const newRefreshToken = createRefresherToken(
+      user.id,
+      user.tokenVersion
+    );
+
+    res.cookie("refresh-token", newRefreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
+    // create new access token
+    const accessToken = createAccessToken(user.id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Refresh token reissued",
+      accessToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        isEmailVerified: user.isEmailVerified
+      }
+    });
+  } catch (error) {
+    console.log(error);
+
+    return res.status(401).json({
+      success: false,
+      message: "Invalid or expired refresh token"
+    });
+  }
+};
+
+
+module.exports.logout = async(req,res)=>{
+  res.clearCookie("refreshToken", { path: "/" });
+
+  return res.status(200).json({
+    message: "Logged out",
+  });
+
+}

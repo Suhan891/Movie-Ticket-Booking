@@ -21,13 +21,20 @@ const sendEmail = async ({to,subject,html})=>{
             pass
         }
     })
+    // console.log(transporter)
 
-    await transporter.sendMail({
+    
+
+    const email = await transporter.sendMail({
         from,
         to,
         subject,
         html
     })
+    // if(!email)
+    //     throw new Error("Email not sent")
+    console.log("Email sent successfully");
+    
 }
 
 module.exports = sendEmail
