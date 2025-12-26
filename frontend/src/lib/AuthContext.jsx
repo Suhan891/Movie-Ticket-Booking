@@ -1,65 +1,59 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useState, useContext } from "react";
 import axios from "axios";
 
 const AuthContext = createContext(null);
 
 const client = axios.create({
-  baseURL: "http://localhost:8081/users",
+  baseURL: "http://localhost:8080",
+  withCredentials: true
 });
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem("token"));
+  const [accessToken, setAccessToken] = useState(
+    localStorage.getItem("token") || null
+  );
 
-  useEffect(() => {
-    if (token) {
-      client.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-    } else {
-      delete client.defaults.headers.common["Authorization"];
+  const register = async (data) => {
+    const res = await client.post("/user/register", data);
+
+    return res.data;
+  };
+
+  const login = async (data) => {
+    const res = await client.post("/user/login", data);
+
+    setUser(res.data.user);
+
+    if (res.data.accessToken) {
+      setAccessToken(res.data.accessToken);
+      localStorage.setItem("token", res.data.accessToken);
     }
-  }, [token]);
 
-  const register = async ({ name, username, password }) => {
-    const res = await client.post("/register", {
-      name,
-      username,
-      password,
-    });
-    return res.data.message;
+    return res.data;
   };
 
-  const login = async ({ username, password }) => {
-    const res = await client.post("/login", {
-      username,
-      password,
-    });
+  const logout = async () => {
+    await client.post("/user/logout");
 
-    localStorage.setItem("token", res.data.token);
-    setToken(res.data.token);
-    setUser(res.data.user); // backend data
-    return res.data.message;
-  };
-
-  const logout = () => {
-    localStorage.removeItem("token");
-    setToken(null);
     setUser(null);
-  };
-
-  const value = {
-    user,
-    token,
-    isAuthenticated: !!token,
-    register,
-    login,
-    logout,
+    setAccessToken(null);
+    localStorage.removeItem("token");
   };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider
+      value={{
+        user,
+        accessToken,
+        register,
+        login,
+        logout
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 };
 
-export default AuthContext;
+export const useAuth = () => useContext(AuthContext);
