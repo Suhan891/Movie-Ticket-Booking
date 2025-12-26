@@ -12,14 +12,16 @@ import Footer from './components/Footer'
 
 import Register from './components/Register'
 import NoPage from './pages/NoPage'
+import VerifyPending from './components/Verify'
 
 function App() {
   const isLogin = false;
   const isAdmin = useLocation().pathname.startsWith('/admin');
   return (
     <>
-      {!isAdmin && <Navbar isLogin={isLogin} />}
+      {/* {!isAdmin && <Navbar isLogin={isLogin} />} */}
       <Routes>{!isLogin && <Route path="/register" element={<Register />} />}
+        <Route path="/register/verify-pending" element={<VerifyPending />} />
         <Route path="/" element={<Home />} />
         <Route path="/movies" element={<Movie />} />
         <Route path="/movies/:id" element={<MovieDetails />} />

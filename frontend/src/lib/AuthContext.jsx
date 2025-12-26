@@ -14,13 +14,13 @@ export const AuthProvider = ({ children }) => {
     localStorage.getItem("token") || null
   );
 
-  const register = async (data) => {
+  const registerAuth = async (data) => {
     const res = await client.post("/user/register", data);
 
     return res.data;
   };
 
-  const login = async (data) => {
+  const loginAuth = async (data) => {
     const res = await client.post("/user/login", data);
 
     setUser(res.data.user);
@@ -33,7 +33,7 @@ export const AuthProvider = ({ children }) => {
     return res.data;
   };
 
-  const logout = async () => {
+  const logoutAuth = async () => {
     await client.post("/user/logout");
 
     setUser(null);
@@ -46,9 +46,9 @@ export const AuthProvider = ({ children }) => {
       value={{
         user,
         accessToken,
-        register,
-        login,
-        logout
+        registerAuth,
+        loginAuth,
+        logoutAuth
       }}
     >
       {children}

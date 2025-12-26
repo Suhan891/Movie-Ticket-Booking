@@ -1,28 +1,101 @@
 import React, { useState } from 'react';
+import { useAuth } from '../lib/AuthContext';
+import { useNavigate } from 'react-router-dom';
+
 
 const AuthForm = () => {
-  const [isSignIn, setIsSignIn] = useState(true);
+  const navigate = useNavigate()
+  const [formData, setFormData] = useState({
+    name: "",
+    password: "",
+    email: ""
+  })
+  
+  const [errors, setErrors] = useState({})
+
+  const {registerAuth, loginAuth} = useAuth()
+
+  const [isLogin, setIsLogin] = useState(true);
 
   const toggleMode = () => {
-    setIsSignIn(!isSignIn);
+    setIsLogin(!isLogin);
+    setFormData({
+      name: "",
+      password: "",
+      email: ""
+    })
   };
 
+  const validateForm = ()=>{
+        const newErrors = {};
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+        if(isLogin) {
+            if(!formData.email) newErrors.email = "Email is required";
+              else if(!emailRegex.test(formData.email)) newErrors.email = "Invalid email";
+            if(!formData.password) newErrors.password = "Password is required";
+        } else {
+            if(!formData.name) newErrors.name = "Username is required";
+            if(!formData.email) newErrors.email = "Email is required";
+              else if(!emailRegex.test(formData.email)) newErrors.email = "Invalid email";
+            if(!formData.password) newErrors.password = "Password is required";
+              else if(formData.password.length < 6) newErrors.password = "Password must be of 6 characters";
+        }
+        setErrors(newErrors)
+        return Object.keys(newErrors).length === 0
+    }
+
+
+  const handleChange = (e)=>{
+    setFormData(prev => ({
+    ...prev,
+    [e.target.name]: e.target.value
+  }));
+    setErrors({...errors, [e.target.name]:""})
+  }
+
+  const handleSubmit = async (e)=>{
+    e.preventDefault()
+    if(!validateForm()) return 
+
+    if(isLogin){
+      await loginAuth({
+        email: formData.email,
+        password: formData.password
+      })
+    } else {
+      await registerAuth({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password
+      })
+    }
+
+    setFormData({
+      name: "",
+      password: "",
+      email: ""
+    })
+
+    if(!isLogin)
+    navigate("/verify-pending")
+  }
 
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-white">
-          {isSignIn ? 'Sign in to your account' : 'Create your account'}
+          {isLogin ? 'Sign in to your account' : 'Create your account'}
         </h2>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-gray-800 py-8 px-4 shadow sm:rounded-lg sm:px-10 border border-gray-700">
           
-          <form className="space-y-6" action="#" method="POST">
+          <form className="space-y-6" action="#" method="POST" onSubmit={handleSubmit}>
             
             {/* Name Field - Only visible during Sign Up */}
-            {!isSignIn && (
+            {!isLogin && (
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-300">
                   Full Name
@@ -31,10 +104,13 @@ const AuthForm = () => {
                   <input
                     id="name"
                     name="name"
+                    value={formData.name}
                     type="text"
                     required
-                    className="block w-full appearance-none rounded-md border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                    onChange={handleChange}
+                    className={`block w-full appearance-none rounded-md border bg-gray-700 px-3 py-2 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm ${errors.name? "border-red-500" : "border-gray-600"}`}
                   />
+                  <p className="text-red-500 text-xs mt-1 ml-1 h-4">{errors.name || ''}</p>
                 </div>
               </div>
             )}
@@ -42,17 +118,20 @@ const AuthForm = () => {
             {/* Email Field */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-300">
-                Email address
+                Email
               </label>
               <div className="mt-1">
                 <input
                   id="email"
                   name="email"
                   type="email"
+                  value={formData.email}
                   autoComplete="email"
                   required
-                  className="block w-full appearance-none rounded-md border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                  onChange={handleChange}
+                  className={`block w-full appearance-none rounded-md border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm ${errors.email? "border-red-500" : "border-gray-600"}`}
                 />
+                <p className="text-red-500 text-xs mt-1 ml-1 h-4">{errors.email || ''}</p>
               </div>
             </div>
 
@@ -65,28 +144,20 @@ const AuthForm = () => {
                 <input
                   id="password"
                   name="password"
+                  value={formData.password}
                   type="password"
                   autoComplete="current-password"
                   required
-                  className="block w-full appearance-none rounded-md border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                  onChange={handleChange}
+                  className={`block w-full appearance-none rounded-md border bg-gray-700 px-3 py-2 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm ${errors.password? "border-red-500" : "border-gray-600"}`}
                 />
+                <p className="text-red-500 text-xs mt-1 ml-1 h-4">{errors.password || ''}</p>
               </div>
             </div>
 
             {/* Remember Me & Forgot Password - Only visible during Sign In */}
-            {isSignIn && (
+            {isLogin && (
               <div className="flex flex-row-reverse items-center justify-between pr-3">
-                {/* <div className="flex items-center">
-                  <input
-                    id="remember-me"
-                    name="remember-me"
-                    type="checkbox"
-                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                  />
-                  <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
-                    Remember me
-                  </label>
-                </div> */}
 
                 <div className="text-sm">
                   <a href="#" className="font-medium text-indigo-600 hover:text-indigo-500">
@@ -100,9 +171,9 @@ const AuthForm = () => {
             <div>
               <button
                 type="submit"
-                className="flex w-full justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors duration-200"
+                className="flex w-full justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors duration-200 cursor-pointer"
               >
-                {isSignIn ? 'Sign in' : 'Sign up'}
+                {isLogin ? 'Login' : 'Register'}
               </button>
             </div>
           </form>
@@ -168,12 +239,12 @@ const AuthForm = () => {
           {/* Toggle Link */}
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              {isSignIn ? "Don't have an account? " : "Already have an account? "}
+              {isLogin ? "Don't have an account? " : "Already have an account? "}
               <button
                 onClick={toggleMode}
-                className="font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:underline transition ease-in-out duration-150"
+                className="font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:underline transition ease-in-out duration-150 cursor-pointer"
               >
-                {isSignIn ? 'Sign up' : 'Sign in'}
+                {isLogin ? 'Register' : 'Login'}
               </button>
             </p>
           </div>
