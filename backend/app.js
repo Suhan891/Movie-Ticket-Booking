@@ -6,6 +6,7 @@ const cookieParser = require("cookie-parser");
 const dbConnect = require("./config/db");
 const cors = require("cors")
 
+const authRouter = require("./routes/auth");
 const userRouter = require("./routes/user");
 
 const corsOptions = {
@@ -22,6 +23,7 @@ app.get("/",(req,res)=>{
 app.use(express.json())
 app.use(cookieParser());
 
+app.use("/auth",authRouter)
 app.use("/user",userRouter)
 
 app.listen(port,()=>{

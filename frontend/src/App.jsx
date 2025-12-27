@@ -19,6 +19,9 @@ import {useAuth} from './lib/auth.js'
 function App() {
   const {user,token} = useAuth()
   const isLogin = !!user
+  // React.useEffect(()=>{
+  //   console.log('auth user changed', user, 'token:', token)
+  // },[user, token])
   const isAdmin = useLocation().pathname.startsWith('/admin')
 
   const location = useLocation()
@@ -27,7 +30,7 @@ function App() {
 
   return (
     <>
-      {!isAdmin && hide  && <Navbar isLogin={isLogin} />}
+      {!isAdmin && !hide  && <Navbar isLogin={isLogin} />}
       <Routes>{!isLogin && <Route path="/register" element={<Register />} />}
         <Route path="/login" element={<Register />} />
         <Route path="/register/verify-pending" element={<VerifyPending />} />
@@ -39,7 +42,7 @@ function App() {
         <Route path="/favourites" element={<Favourite/>} />
         <Route path="/*" element={<NoPage/>} />
       </Routes>
-      {!isAdmin  && hide  && <Footer />}
+      {!isAdmin  && !hide  && <Footer />}
     </>
   )
 }

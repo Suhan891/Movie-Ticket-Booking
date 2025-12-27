@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {useAuth} from '../lib/auth';
+import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
 
@@ -57,7 +58,7 @@ const AuthForm = () => {
 
   const handleSubmit = async (e)=>{
     e.preventDefault()
-    if(!validateForm()) return 
+    if(!validateForm()) { toast.error('Please fix the form errors'); return }
 
     if(isLogin){
       await loginAuth({

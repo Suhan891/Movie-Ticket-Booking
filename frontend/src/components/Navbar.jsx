@@ -16,8 +16,14 @@ const Navbar = ({ isLogin }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [isDashBoard, setIsDashBoard] = useState(false)
 
-  const {user} = useAuth()
+  const {user, logoutAuth} = useAuth()
   const navigate = useNavigate()
+
+  const handleLogout = async () => {
+    await logoutAuth()
+    setIsDashBoard(false)
+    navigate('/')
+  }
 
   return (
     <div className="fixed top-0 left-0 z-50 w-full flex items-center justify-between px-6 md:px-16 lg:px-36 py-5">
@@ -88,7 +94,7 @@ const Navbar = ({ isLogin }) => {
                 My Bookings
               </Link>
 
-              <button className="flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 w-full text-left">
+              <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 w-full text-left">
                 <LogOut size={16} />
                 Logout
               </button>

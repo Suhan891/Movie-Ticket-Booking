@@ -3,6 +3,7 @@ const {hashPassword,verifyPassword} = require("../lib/hashPassword");
 const {createToken,verifyAccessToken, createRefresherToken, verifyRefreshToken,createAccessToken} = require("../lib/token");
 const User = require("../models/user");
 const jwt = require("jsonwebtoken")
+const crypto = require("crypto")
 
 const getAppUrl = ()=>{
     return process.env.APP_URL
@@ -269,3 +270,106 @@ module.exports.logout = async(req,res)=>{
   });
 
 }
+
+module.exports.forgotPassword = async(req,res)=>{
+    try {
+        const {email} = req.body
+        if(!email)
+            return res.status(400).json({
+                success: false,
+                message: "Email is required"
+            })
+
+        const modifiedEmail = email.trim().toLowerCase()
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if(!emailRegex.test(modifiedEmail))
+            return res.status(401).json({
+                success: false,
+                message: "Invalid Email"
+            })
+
+        const user = User.findOne({email: modifiedEmail})
+        if(!user)
+            return res.status(400).json({
+                success: false,
+                message: "Not a registered Email"
+            })
+        
+        const rawToken = crypto.randomBytes(32).toString('hex')
+        const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex')
+
+        user.resetPasswordToken = tokenHash
+        user.resetPasswordExpires = new Date(Date.now() + 15*60*1000)
+
+        await user.save()
+
+        const resetUrl = `${getAppUrl()}/user/forgot-password?token=${tokenHash}`
+        await sendEmail({
+            to: user.email,
+            subject: "Reset Your Password",
+            html: `<p>Please Change your Password by clicking this link: </p>
+            <p><a href="${resetUrl}">${resetUrl}</a></p>
+            <p><i>Link valid for only 15 min</i></p>`
+        })
+
+        res.status(201).json({
+            success: false,
+            message: "Please check your Inbox to change Password"
+        })
+    } catch (error) {
+        console.log(error);
+        
+        return res.status(500).json({
+            success: false,
+            message: "Forgot Password Handling Error",
+            error
+        })
+    }
+}
+
+module.exports.resetPasswordHandler = async(req,res)=>{
+    try {
+        // Frontend will aquire token (useParams) and send it in body
+        const {password,token} = req.body
+    
+        if(!token)
+            return res.status(400).json({
+                success: false,
+                message: "Token is required"
+            })
+        if(!password || password.length < 6)
+            return res.status(400).json({
+                success: false,
+                message: "Password must be atleast 6 char long"
+            })
+    
+        const user = await User.findOne({
+            resetPasswordToken: token,
+            resetPasswordExpires: {$gt: new Date()}
+        })
+
+        if(!user)
+            return res.status(400).json({ message: "Invalid or expired token" });
+
+        const newPasswordHash = await hashPassword({password: password})
+
+        user.password = newPasswordHash
+
+        user.resetPasswordToken = undefined
+        user.resetPasswordExpires = undefined
+
+        user.tokenVersion = user.tokenVersion + 1
+        await user.save()
+
+        return res.json({
+            success: true,
+            message: "Password reset successfully!",
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Password reset server Error",
+        });
+    }
+}
+
