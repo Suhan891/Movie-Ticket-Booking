@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link,useNavigate } from 'react-router-dom'
 import { assets } from '../assets/assets'
 import {
   SearchIcon,
@@ -10,10 +10,14 @@ import {
   Tickets,
   LogOut
 } from 'lucide-react'
+import {useAuth} from '../lib/auth.js'
 
 const Navbar = ({ isLogin }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [isDashBoard, setIsDashBoard] = useState(false)
+
+  const {user} = useAuth()
+  const navigate = useNavigate()
 
   return (
     <div className="fixed top-0 left-0 z-50 w-full flex items-center justify-between px-6 md:px-16 lg:px-36 py-5">
@@ -46,7 +50,9 @@ const Navbar = ({ isLogin }) => {
         <SearchIcon className="max-md:hidden w-6 h-6 cursor-pointer" />
 
         {!isLogin ? (
-          <button className="px-4 py-1 sm:px-7 sm:py-2 bg-primary hover:bg-primary-dull transition rounded-full font-medium cursor-pointer">
+          <button
+          onClick={()=> navigate("/login")}
+          className="px-4 py-1 sm:px-7 sm:py-2 bg-primary hover:bg-primary-dull transition rounded-full font-medium cursor-pointer">
             Login
           </button>
         ) : (
@@ -59,8 +65,8 @@ const Navbar = ({ isLogin }) => {
         {isDashBoard && (
           <div className="absolute right-0 top-10 w-48 bg-gray-900/95 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
             <div className="p-4 border-b border-white/10">
-              <p className="text-sm font-medium text-white"> User Name</p>
-              <p className="text-xs text-gray-400">user@example.com</p>
+              <p className="text-sm font-medium text-white">{user? user.name : "User Name"}</p>
+              <p className="text-xs text-gray-400">{user? user.email : "user@example.com"}</p>
             </div>
 
             <div className="flex flex-col py-1">

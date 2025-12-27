@@ -1,6 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { AuthContext } from './auth';
+import { toast } from 'react-toastify';
 
 const client = axios.create({
   baseURL: "http://localhost:8080",
@@ -9,13 +10,14 @@ const client = axios.create({
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [accessToken, setAccessToken] = useState(
+  const [token, setToken] = useState(
     localStorage.getItem("token") || null
   );
 
   const registerAuth = async (data) => {
     const res = await client.post("/user/register", data);
 
+    toast.success("Please Check Your Email to Register")
     return res.data;
   };
 
@@ -24,18 +26,22 @@ export const AuthProvider = ({ children }) => {
       const res = await client.post("/user/login", data);
       console.log(res)
 
+    // update user
     setUser(res.data.user);
-    console.log("user: ",user)
 
-    if (res.data.accessToken) {
-      setAccessToken(res.data.accessToken);
-      localStorage.setItem("token", res.data.accessToken);
+    // backend may return `token` or `accessToken` — accept either
+    const serverToken = res.data.token ?? res.data.accessToken ?? null;
+    if (serverToken) {
+      setToken(serverToken);
+      localStorage.setItem("token", serverToken);
     }
-    console.log("Token: ",accessToken)
+    console.log("login response user/ token:", res.data.user, serverToken)
     
+    // toast.success("Login Successfull")
     return res.data;
     } catch(error){
       console.error(error)
+      toast.error("Login Unsuccessfull")
     }
   };
 
@@ -43,7 +49,7 @@ export const AuthProvider = ({ children }) => {
     await client.post("/user/logout");
 
     setUser(null);
-    // setAccessToken(null);
+    // settoken(null);
     localStorage.removeItem("token");
   };
 
@@ -51,7 +57,7 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         user,
-        accessToken,
+        token,
         registerAuth,
         loginAuth,
         logoutAuth
