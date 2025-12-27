@@ -1,6 +1,6 @@
 const sendEmail = require("../lib/email");
 const {hashPassword,verifyPassword} = require("../lib/hashPassword");
-const {createToken,verifyAccessToken, createRefresherToken, verifyRefreshToken} = require("../lib/token");
+const {createToken,verifyAccessToken, createRefresherToken, verifyRefreshToken,createAccessToken} = require("../lib/token");
 const User = require("../models/user");
 const jwt = require("jsonwebtoken")
 
@@ -153,12 +153,13 @@ module.exports.loginUser = async(req,res)=>{
         // console.log("Login of a verified user");
         
 
-        const refreshToken = createToken({
+        const accessToken = createAccessToken({
             userId: user._id,
             role: user.role,
             tokenVersion: user.tokenVersion
         })
-        if(!refreshToken) return res.status(501).json({success: false, message: "Token creation Unsuccessfull"})
+        const refreshToken = createRefresherToken(user.id, user.tokenVersion);
+        if(!refreshToken || !accessToken) return res.status(501).json({success: false, message: "Token creation Unsuccessfull"})
 
         res.cookie("refresh-token",refreshToken,{
             httpOnly: true,
@@ -167,9 +168,14 @@ module.exports.loginUser = async(req,res)=>{
             maxAge: 7*24*60*60*1000
         })
 
+        // const accessToken = createAccessToken(user._id);
+
+        console.log("Login Successfull: ",user)
+
         return res.status(200).json({
         message: "Login successfully done",
-        refreshToken,
+
+        accessToken,
         user: {
             id: user.id,
             email: user.email,

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from '../lib/AuthContext';
+import {useAuth} from '../lib/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 
@@ -19,6 +19,7 @@ const AuthForm = () => {
 
   const toggleMode = () => {
     setIsLogin(!isLogin);
+    !isLogin ? navigate("/login") : navigate("/register")
     setFormData({
       name: "",
       password: "",
@@ -78,7 +79,7 @@ const AuthForm = () => {
     })
 
     if(!isLogin)
-    navigate("/verify-pending")
+    navigate("/register/verify-pending")
   }
 
   return (

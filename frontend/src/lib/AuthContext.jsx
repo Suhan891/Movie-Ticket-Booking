@@ -8,7 +8,7 @@ const client = axios.create({
   withCredentials: true
 });
 
-export const AuthProvider = ({ children }) => {
+export function AuthProvider({ children }){
   const [user, setUser] = useState(null);
   const [accessToken, setAccessToken] = useState(
     localStorage.getItem("token") || null
@@ -21,23 +21,29 @@ export const AuthProvider = ({ children }) => {
   };
 
   const loginAuth = async (data) => {
-    const res = await client.post("/user/login", data);
+    try{
+      const res = await client.post("/user/login", data);
 
     setUser(res.data.user);
+    console.log(user)
 
     if (res.data.accessToken) {
       setAccessToken(res.data.accessToken);
       localStorage.setItem("token", res.data.accessToken);
     }
-
+    console.log(accessToken)
+    
     return res.data;
+    } catch(error){
+      console.error(error)
+    }
   };
 
   const logoutAuth = async () => {
     await client.post("/user/logout");
 
     setUser(null);
-    setAccessToken(null);
+    // setAccessToken(null);
     localStorage.removeItem("token");
   };
 
@@ -56,4 +62,10 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export function useAuth() {
+  const context = useContext(AuthContext)
+  if(!context)
+    throw new Error("Auth Context Missing")
+
+  return context
+}

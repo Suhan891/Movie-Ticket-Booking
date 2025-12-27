@@ -21,7 +21,7 @@ module.exports.verifyRefreshToken = (token) => {
 
 module.exports.createAccessToken = (userId) => {
   return jwt.sign(
-    { userId },
+    { _id:userId },
     process.env.ACCESS_TOKEN_SECRET,
     { expiresIn: "15m" }
   );

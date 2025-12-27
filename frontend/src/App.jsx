@@ -21,6 +21,7 @@ function App() {
     <>
       {/* {!isAdmin && <Navbar isLogin={isLogin} />} */}
       <Routes>{!isLogin && <Route path="/register" element={<Register />} />}
+        <Route path="/login" element={<Register />} />
         <Route path="/register/verify-pending" element={<VerifyPending />} />
         <Route path="/" element={<Home />} />
         <Route path="/movies" element={<Movie />} />
