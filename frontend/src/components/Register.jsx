@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {useAuth} from '../lib/auth';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
-
+import { Eye } from 'lucide-react';
 
 const AuthForm = () => {
   const navigate = useNavigate()
@@ -17,6 +17,7 @@ const AuthForm = () => {
   const {registerAuth, loginAuth} = useAuth()
 
   const [isLogin, setIsLogin] = useState(true);
+  const [toggleVisible, setToggleVisible] = useState(false)
 
   const toggleMode = () => {
     setIsLogin(!isLogin);
@@ -58,19 +59,21 @@ const AuthForm = () => {
 
   const handleSubmit = async (e)=>{
     e.preventDefault()
-    if(!validateForm()) { toast.error('Please fix the form errors'); return }
+    if(!validateForm()) { toast.error('Invalis form details'); return }
 
     if(isLogin){
       await loginAuth({
         email: formData.email,
         password: formData.password
       })
+      navigate("/")
     } else {
       await registerAuth({
         name: formData.name,
         email: formData.email,
         password: formData.password
       })
+       navigate("/register/verify-pending");
     }
 
     setFormData({
@@ -79,9 +82,8 @@ const AuthForm = () => {
       email: ""
     })
 
-    if(!isLogin)
-    navigate("/register/verify-pending")
   }
+
 
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
@@ -138,23 +140,33 @@ const AuthForm = () => {
             </div>
 
             {/* Password Field */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-300">
+            <div className="mt-1 relative">
+              <label htmlFor="Password" className="block text-sm font-medium text-gray-300">
                 Password
               </label>
-              <div className="mt-1">
-                <input
-                  id="password"
-                  name="password"
-                  value={formData.password}
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  onChange={handleChange}
-                  className={`block w-full appearance-none rounded-md border bg-gray-700 px-3 py-2 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm ${errors.password? "border-red-500" : "border-gray-600"}`}
-                />
-                <p className="text-red-500 text-xs mt-1 ml-1 h-4">{errors.password || ''}</p>
-              </div>
+              <input
+                id="password"
+                name="password"
+                value={formData.password}
+                type={toggleVisible?"password":"text"}
+                autoComplete="current-password"
+                required
+                onClick={()=> setToggleVisible(!toggleVisible)} 
+                onChange={handleChange}
+                className={`block w-full appearance-none rounded-md border bg-gray-700 px-3 py-2 pr-10 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm ${
+                  errors.password ? 'border-red-500' : 'border-gray-600'
+                }`}
+              />
+
+              <Eye
+                size={16}
+                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400"
+                onClick={()=> setToggleVisible(!toggleVisible)}
+              />
+
+              <p className="text-red-500 text-xs mt-1 ml-1 h-4">
+                {errors.password || ''}
+              </p>
             </div>
 
             {/* Remember Me & Forgot Password - Only visible during Sign In */}
@@ -183,45 +195,47 @@ const AuthForm = () => {
           {/* Divider */}
           <div className="mt-6">
             <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
+              <div className="absolute inset-0 flex items-center ">
+                <div className="w-full border-t border-gray-300 " />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="bg-white px-2 text-gray-500">Or continue with</span>
+                <span className="bg-white px-2 text-gray-500 rounded-lg">Or continue with</span>
               </div>
             </div>
 
             {/* Social Buttons */}
-            <div className="mt-6 grid grid-cols-2 gap-3">
+            <div className="mt-6 grid grid-cols-1 gap-3">
               <div>
                 <a
                   href="#"
-                  className="inline-flex w-full justify-center rounded-md border border-gray-600 bg-gray-700 py-2 px-4 text-sm font-medium text-gray-200 shadow-sm hover:bg-gray-50"
+                  className="inline-flex w-full justify-center rounded-md border border-gray-600 bg-gray-700 py-2 px-4 text-sm font-medium text-gray-500 shadow-sm hover:bg-gray-50"
                 >
                   <span className="sr-only">Sign in with Google</span>
-                  <svg className="h-5 w-5" aria-hidden="true" viewBox="0 0 24 24">
-                    <path
-                      d="M12.0003 20.45c4.6667 0 7.9167-3.2333 7.9167-8.0333 0-.6667-.0667-1.3-.1834-1.9H12.0003v3.6h4.5334c-.2 1.0667-.8 1.9667-1.7 2.5667l2.75 2.1333c1.6-1.4833 2.5333-3.6667 2.5333-6.1833 0-4.8167-3.9-8.7167-8.7167-8.7167-2.65 0-4.9666 1.1834-6.5333 3.0667L7.467 9.45c1.1-1.95 3.2-3.2667 5.5333-3.2667z"
-                      fill="#4285F4"
-                    />
-                    <path
-                      d="M2.517 9.45L4.8336 6.9833C3.267 4.5333 5.4836 2.1167 7.467 3.8L4.8336 6.9833z"
-                      fill="#EA4335"
-                    />
-                    <path
-                      d="M12.0003 24c-3.25 0-6.1833-1.2833-8.2833-3.3667l2.75-2.1333c1.0833 1.25 2.9167 2 4.5333 2 4.8167 0 8.7167-3.9 8.7167-8.7167H12.0003v3.6h5.3667c-1.1667 3.3-4.2834 5.6167-7.9667 5.6167z"
-                      fill="#34A853"
-                    />
-                    <path
-                      d="M3.7167 14.6833c-.3167-.9333-.5-1.9333-.5-2.9666 0-1.0334.1833-2.0334.5-2.9667L.9667 6.6167C.35 8.2333 0 10.0667 0 12c0 1.9333.35 3.7667.9667 5.3833l2.75-2.7z"
-                      fill="#FBBC05"
-                    />
-                  </svg>
+                <svg className="h-5 w-5" aria-hidden="true" viewBox="0 0 24 24">
+                  <path
+                    d="M12.0003 20.45c4.6667 0 7.9167-3.2333 7.9167-8.0333 0-.6667-.0667-1.3-.1834-1.9H12.0003v3.6h4.5334c-.2 1.0667-.8 1.9667-1.7 2.5667l2.75 2.1333c1.6-1.4833 2.5333-3.6667 2.5333-6.1833 0-4.8167-3.9-8.7167-8.7167-8.7167-2.65 0-4.9666 1.1834-6.5333 3.0667L7.467 9.45c1.1-1.95 3.2-3.2667 5.5333-3.2667z"
+                    fill="#4285F4"
+                  />
+                  <path
+                    d="M2.517 9.45L4.8336 6.9833C3.267 4.5333 5.4836 2.1167 7.467 3.8L4.8336 6.9833z"
+                    fill="#EA4335"
+                  />
+                  <path
+                    d="M12.0003 24c-3.25 0-6.1833-1.2833-8.2833-3.3667l2.75-2.1333c1.0833 1.25 2.9167 2 4.5333 2 4.8167 0 8.7167-3.9 8.7167-8.7167H12.0003v3.6h5.3667c-1.1667 3.3-4.2834 5.6167-7.9667 5.6167z"
+                    fill="#34A853"
+                  />
+                  <path
+                    d="M3.7167 14.6833c-.3167-.9333-.5-1.9333-.5-2.9666 0-1.0334.1833-2.0334.5-2.9667L.9667 6.6167C.35 8.2333 0 10.0667 0 12c0 1.9333.35 3.7667.9667 5.3833l2.75-2.7z"
+                    fill="#FBBC05"
+                  />
+                </svg>
+                {/* <img src="../assets/icons8-google.svg"  />             */}
+
                   <span className="ml-2">Google</span>
                 </a>
               </div>
 
-              <div>
+              {/* <div>
                 <a
                   href="#"
                   className="inline-flex w-full justify-center rounded-md border border-gray-600 bg-gray-700 py-2 px-4 text-sm font-medium text-gray-200 shadow-sm hover:bg-gray-50"
@@ -234,7 +248,7 @@ const AuthForm = () => {
                   </svg>
                   <span className="ml-2 hover:text-black-700">Instagram</span>
                 </a>
-              </div>
+              </div> */}
             </div>
           </div>
 
