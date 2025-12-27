@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import axios from "axios";
 import AuthContext from './AuthContext';
 import toast from 'react-hot-toast';
@@ -9,19 +9,31 @@ const client = axios.create({
   withCredentials: true
 });
 
-// // attach token from localStorage to requests
-// client.interceptors.request.use((config) => {
-//   const t = localStorage.getItem('token');
-//   if (t) config.headers = { ...config.headers, Authorization: `Bearer ${t}` };
-//   return config;
-// });
-
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(
     localStorage.getItem("token") || null
   );
   const navigate = useNavigate()
+
+  useEffect(() => {
+    const loadUser = async () => {
+      const storedToken = localStorage.getItem("token");
+      if (!storedToken) return;
+
+      // If user was persisted locally, restore it immediately
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        try {
+          setUser(JSON.parse(storedUser));
+        } catch {
+          localStorage.removeItem("user");
+        }
+        return;
+      }
+    };
+    loadUser();
+  }, [token]);
 
   const registerAuth = async (data) => {
     try {
@@ -42,6 +54,8 @@ export const AuthProvider = ({ children }) => {
 
     // update user
     setUser(res.data.user);
+    // persist user for reloads
+    if (res.data.user) localStorage.setItem("user", JSON.stringify(res.data.user));
 
     // backend may return `token` or `accessToken` — accept either
     const serverToken = res.data.token ?? res.data.accessToken ?? null;
@@ -62,11 +76,22 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // const loginAuth = async (data) => {
+  //   const res = await client.post("/auth/login", data);
+
+  //   setUser(res.data.user);
+  //   localStorage.setItem("token", res.data.accessToken);
+  //   setToken(res.data.accessToken);
+
+  //   toast.success(res.data.message);
+  //   return res.data;
+  // };
   const logoutAuth = async () => {
     try {
       await client.post("/auth/logout");
       setUser(null);
       localStorage.removeItem("token");
+      localStorage.removeItem("user");
       toast.success("Logged out")
     } catch (err) {
       console.error(err)
