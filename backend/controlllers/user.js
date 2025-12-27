@@ -56,7 +56,7 @@ module.exports.registerUser = async(req,res)=>{
             {expiresIn: "1d"}
         )
         // Changed auth to user
-        const verifyUrl = `${getAppUrl()}/user/email-verify?token=${token}`
+        const verifyUrl = `${getAppUrl()}/auth/email-verify?token=${token}`
     
         await sendEmail({
             to: user.email,
@@ -179,6 +179,7 @@ module.exports.loginUser = async(req,res)=>{
         accessToken,
         user: {
             id: user.id,
+            name: user.name,
             email: user.email,
             role: user.role,
             isEmailVerified: user.isEmailVerified,
@@ -372,4 +373,3 @@ module.exports.resetPasswordHandler = async(req,res)=>{
         });
     }
 }
-
