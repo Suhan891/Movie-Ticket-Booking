@@ -1,5 +1,5 @@
 const express = require("express")
-const { registerUser, loginUser, verifyEmail, refreshToken, logout, forgotPassword, resetPasswordHandler, getMe } = require("../controlllers/user")
+const { registerUser, loginUser, verifyEmail, refreshToken, logout, forgotPassword, resetPasswordHandler,  googleAuthStartHandler, googleAuthCallbackHandler } = require("../controlllers/user")
 const requireAuth = require("../middlewares/requireAuth")
 
 const router = express.Router()
@@ -11,5 +11,7 @@ router.post("/refreshToken",refreshToken)
 router.post("/logout",logout)
 router.post("/forgot-password",forgotPassword)
 router.post("/reset-password",resetPasswordHandler)
+router.get("/google",googleAuthStartHandler)
+router.get("/google/callback",googleAuthCallbackHandler)
 
 module.exports = router

@@ -4,9 +4,26 @@ const {createToken,verifyAccessToken, createRefresherToken, verifyRefreshToken,c
 const User = require("../models/user");
 const jwt = require("jsonwebtoken")
 const crypto = require("crypto")
+const {OAuth2Client} = require('google-auth-library');
 
 const getAppUrl = ()=>{
     return process.env.APP_URL
+}
+
+const getGoogleClient = async()=>{
+    const clientId = process.env.GOOGLE_CLIENT_ID
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET
+    const redirectUri = `${getAppUrl()}/auth/google/callback`
+    
+    if(!clientId || !clientSecret)
+        throw new Error("Google Authorisations not received")
+
+    const oAuth2Client = new OAuth2Client({
+        clientId,
+        clientSecret,
+        redirectUri
+    })
+    return oAuth2Client
 }
 
 module.exports.registerUser = async(req,res)=>{
@@ -387,5 +404,58 @@ module.exports.resetPasswordHandler = async(req,res)=>{
             success: false,
             message: "Password reset server Error",
         });
+    }
+}
+
+module.exports.googleAuthStartHandler = async(req,res)=>{
+
+    try {
+        const client = await getGoogleClient()
+        console.log(client)
+        if(!client)
+            return res.status(401).json({
+                success: false,
+                message: "Google Client not received"
+            })
+    
+        const url = client.generateAuthUrl({
+            access_type: "offline",
+            prompt: "consent",
+            scope: ["openid","email","profile"]
+        })
+            // console.log(url)
+        
+    
+        return res.redirect(url)
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        })
+    }
+}
+
+module.exports.googleAuthCallbackHandler = async (req,res)=>{
+
+    const {code} = req.query
+
+    if(!code)
+        return res.status(400).json({
+            success: false,
+            message: "Missing code in callback"
+        })
+
+    try{
+
+        const client = await getGoogleClient()
+        const {token} = await client.getToken(token)
+
+        console.log("Client: ",client)
+        console.log("Token: ",token)
+    } catch(err){
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        })
     }
 }
