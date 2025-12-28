@@ -1,6 +1,6 @@
 const sendEmail = require("../lib/email");
 const {hashPassword,verifyPassword} = require("../lib/hashPassword");
-const {createToken,verifyAccessToken, createRefresherToken, verifyRefreshToken,createAccessToken} = require("../lib/token");
+const {createToken,verifyAccessToken, createRefresherToken, verifyRefreshToken,createAccessToken, createEmailVerifyToken, verifyEmailVerifyToken} = require("../lib/token");
 const User = require("../models/user");
 const jwt = require("jsonwebtoken")
 const crypto = require("crypto")
@@ -50,11 +50,13 @@ module.exports.registerUser = async(req,res)=>{
 
         console.log("USER CREATED:", user);
     
-        const token = jwt.sign(
-            {_id:user._id},
-            process.env.JWT_SECRET,
-            {expiresIn: "1d"}
-        )
+        // const token = jwt.sign(
+        //     {_id:user._id, type:"email_verify"},
+        //     process.env.EMAIL_VERIFY_SECRET,
+        //     {expiresIn: "1d"}
+        // )
+
+        const token =createEmailVerifyToken(user._id)
         // Changed auth to user
         const verifyUrl = `${getAppUrl()}/auth/email-verify?token=${token}`
     
@@ -68,7 +70,13 @@ module.exports.registerUser = async(req,res)=>{
         return res.status(200).json({
             success: true,
             message: "Registration successfull",
-            user
+            user:{
+                email: user.email,
+                name: user.name,
+                role: user.role,
+                isEmailVerified: user.isEmailVerified,
+                twoFactorEnabled: user.twoFactorEnabled
+            }
         })
     } catch (error) {
         console.log(error);
@@ -91,9 +99,16 @@ module.exports.verifyEmail = async(req,res)=>{
         })
 
     try {
-        const payload = jwt.verify(token,process.env.JWT_SECRET)
+        // const payload = jwt.verify(token,process.env.EMAIL_VERIFY_SECRET)
+        const payload = verifyEmailVerifyToken(token)
         if(!payload) return res.status(404).json({success: false, message:"Token Verification Unsuccessfull"})
         
+        if (payload.type !== "email_verify") {
+        return res.status(401).json({
+            success: false,
+            message: "Invalid verification token"
+        });
+        }
         const user = await User.findById(payload._id)
         if(!user) return res.status(404).json({success: false, message:"User not found with token"})
 
@@ -106,8 +121,11 @@ module.exports.verifyEmail = async(req,res)=>{
         return res.status(200).json({
             success: true,
             message: "Email Verification successfull",
-            // user
-        })
+            user: {
+                email: user.email,
+                name: user.name,
+                isEmailVerified: user.isEmailVerified}
+            })
 
     } catch (error) {
         return res.status(500).json({
@@ -155,27 +173,25 @@ module.exports.loginUser = async(req,res)=>{
         
 
         const accessToken = createAccessToken({
-            userId: user._id,
+            _id: user._id,
             role: user.role,
             tokenVersion: user.tokenVersion
         })
         const refreshToken = createRefresherToken(user.id, user.tokenVersion);
         if(!refreshToken || !accessToken) return res.status(501).json({success: false, message: "Token creation Unsuccessfull"})
 
-        res.cookie("refresh-token",refreshToken,{
+        res.cookie("refreshToken",refreshToken,{
             httpOnly: true,
             secure: process.env.NODE_ENV == "production",
             sameSite: "lax",
             maxAge: 7*24*60*60*1000
         })
 
-        // const accessToken = createAccessToken(user._id);
 
         console.log("Login Successfull: ",user)
 
         return res.status(200).json({
-        message: "Login successfully done",
-
+        message: "Successfulll Login",
         accessToken,
         user: {
             id: user.id,
@@ -199,7 +215,7 @@ module.exports.loginUser = async(req,res)=>{
 
 module.exports.refreshToken = async (req, res) => {
   try {
-    const token = req.cookies?.["refresh-token"];
+    const token = req.cookies?.refreshTokan;
 
     if (!token) {
       return res.status(401).json({
@@ -210,7 +226,7 @@ module.exports.refreshToken = async (req, res) => {
 
     const payload = verifyRefreshToken(token);
 
-    const user = await User.findById(payload.userId);
+    const user = await User.findById(payload._id);
 
     if (!user) {
       return res.status(404).json({
@@ -232,7 +248,7 @@ module.exports.refreshToken = async (req, res) => {
       user.tokenVersion
     );
 
-    res.cookie("refresh-token", newRefreshToken, {
+    res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
@@ -240,7 +256,7 @@ module.exports.refreshToken = async (req, res) => {
     });
 
     // create new access token
-    const accessToken = createAccessToken(user.id);
+    const accessToken = createAccessToken({_id:user.id,role:user.role,tokenVersion: user.tokenVersion});
 
     return res.status(200).json({
       success: true,
