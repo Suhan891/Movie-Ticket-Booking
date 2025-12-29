@@ -3,7 +3,9 @@ import axios from "axios";
 import AuthContext from './AuthContext';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom'
+import api from "./api"
 
+// will handle auth related
 const client = axios.create({
   baseURL: "http://localhost:8080",
   withCredentials: true
@@ -14,15 +16,16 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(
     localStorage.getItem("token") || null
   );
+  // const [token,setToken] = useState(null)
   const navigate = useNavigate()
 
   useEffect(() => {
     const loadUser = async () => {
       const storedToken = localStorage.getItem("token");
-      if (!storedToken) return;
+      if (!storedToken) return toast.error("Unavailable token");
 
-      // If user was persisted locally, restore it immediately
       const storedUser = localStorage.getItem("user");
+      console.log("Stored User",storedUser)
       if (storedUser) {
         try {
           setUser(JSON.parse(storedUser));
@@ -34,6 +37,46 @@ export const AuthProvider = ({ children }) => {
     };
     loadUser();
   }, [token]);
+
+
+// useEffect(()=>{
+//   const storedToken = localStorage.getItem("token")
+//   const storedUser = localStorage.getItem("user")
+
+//   if (storedToken) setToken(storedToken);
+//   if (storedUser) setUser(JSON.parse(storedUser));
+
+// },[])
+
+  // api is ready to handle all the website functionalities 
+  api.interceptors.request.use(response=>
+    response,
+    async(error)=>{
+      const originalRequest = error.config
+
+      if(error.response?.status == 401 && !originalRequest._retry){
+        originalRequest._retry = true
+        try {
+          const res = await client.post("/auth/refreshToken")
+
+          const newAccessToken = res.data?.accessToken
+          if(!newAccessToken)
+            return toast.error("New Access Token Not received")
+
+          localStorage.setItem("token",newAccessToken)
+          originalRequest.headers.Authorization=`Bearer ${newAccessToken}`
+
+          return api(originalRequest)
+        } catch (error) {
+          navigate("/")
+          toast.error(error?.response?.data?.message || "Access Token creation error")
+          localStorage.removeItem("token")
+          localStorage.removeItem("user")
+        }
+      }
+      return Promise.reject(error)
+    }
+  )
 
   const registerAuth = async (data) => {
     try {
@@ -49,16 +92,15 @@ export const AuthProvider = ({ children }) => {
 
   const loginAuth = async (data) => {
     try{
-      const res = await client.post("/auth/login", data);
-      console.log(res)
+    const res = await client.post("/auth/login", data);
+      // console.log(res)
 
-    // update user
+
     setUser(res.data.user);
-    // persist user for reloads
+
     if (res.data.user) localStorage.setItem("user", JSON.stringify(res.data.user));
 
-    // backend may return `token` or `accessToken` — accept either
-    const serverToken = res.data.token ?? res.data.accessToken ?? null;
+    const serverToken = res.data.accessToken ?? null;
     if(!serverToken)
       toast.error("Token not received")
     if (serverToken) {
@@ -73,8 +115,25 @@ export const AuthProvider = ({ children }) => {
       console.error(error)
       // toast.error("Login Unsuccessfull")
       toast.error(error?.response?.data?.message || "Login failed")
-    }
-  };
+    }}
+  //   try {
+  //     const res = await client.post("/auth/login",data)
+      
+  //     const userData = res.data?.user
+  //     localStorage.setItem("user",JSON.stringify(userData))
+  //     setUser(user)
+
+  //     const token = res.data?.accessToken
+  //     localStorage.setItem("token",token)
+  //     setToken(token)
+
+  //     navigate("/")
+  //     return toast.success(res.data?.message || "Login Successfull")
+  //   } catch (error) {
+  //     console.log(error);
+  //     toast.error(error.response?.data?.message || "Login Unsuccessfull")
+  //   }
+  // };
 
   // const loginAuth = async (data) => {
   //   const res = await client.post("/auth/login", data);
@@ -86,13 +145,15 @@ export const AuthProvider = ({ children }) => {
   //   toast.success(res.data.message);
   //   return res.data;
   // };
+  
   const logoutAuth = async () => {
     try {
-      await client.post("/auth/logout");
+      const res = await client.post("/auth/logout");
       setUser(null);
+      // setToken(null)
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      toast.success("Logged out")
+      toast.success(res.data?.message || "Logged out")
     } catch (err) {
       console.error(err)
       toast.error("Logout failed")
@@ -103,6 +164,8 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         user,
+        setUser,
+        setToken,
         token,
         registerAuth,
         loginAuth,

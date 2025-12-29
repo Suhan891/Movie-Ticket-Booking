@@ -2,25 +2,24 @@ const { verifyAccessToken } = require("../lib/token");
 const User = require("../models/user");
 
 const requireAuth = async (req,res,next) =>{
-    const authHeader = req.headers.authorization
+    const authHeader = req.headers.Authorization
     if(!authHeader || !authHeader.startsWith("Bearer "))
-        return res.status(402).json({
+        return res.status(401).json({
             success: false,
             message: "You are not auth user! You are not allowed to use"
         })
-    
+
     const token = authHeader.split(" ")[1]
-    if(!token)
-        return res.status(401).json({
-        success: false,
-        message: "Token not found"
-        });
 
     try {
         const payload = verifyAccessToken(token);
+
+        if(!payload)
+            return res.status(401).json({ message: "Token invalidated" });
+
         const user = await User.findById(payload._id)
         if(!user)
-            return res.status(401).json({
+            return res.status(400).json({
             success: false,
             message: "User Not Found! You are not allowed to use"
             });

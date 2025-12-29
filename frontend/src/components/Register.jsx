@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {useAuth} from '../lib/auth';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
-import { Eye } from 'lucide-react';
+import { Eye,EyeOff } from 'lucide-react';
 
 const AuthForm = () => {
   const navigate = useNavigate()
@@ -151,18 +151,21 @@ const AuthForm = () => {
                 type={toggleVisible?"password":"text"}
                 autoComplete="current-password"
                 required
-                onClick={()=> setToggleVisible(!toggleVisible)} 
                 onChange={handleChange}
                 className={`block w-full appearance-none rounded-md border bg-gray-700 px-3 py-2 pr-10 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm ${
                   errors.password ? 'border-red-500' : 'border-gray-600'
                 }`}
               />
 
-              <Eye
+              {toggleVisible ? <Eye
                 size={16}
-                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400"
                 onClick={()=> setToggleVisible(!toggleVisible)}
-              />
+              />:<EyeOff
+                  size={16}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400"
+                  onClick={()=> setToggleVisible(!toggleVisible)}
+                />}
 
               <p className="text-red-500 text-xs mt-1 ml-1 h-4">
                 {errors.password || ''}

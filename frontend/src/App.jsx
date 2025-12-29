@@ -1,5 +1,5 @@
 
-import {Routes, Route, useLocation} from 'react-router-dom'
+import {Routes, Route, useLocation, useSearchParams, useNavigate} from 'react-router-dom'
 
 import Navbar from './components/Navbar'
 import Home from './pages/Home'
@@ -15,13 +15,38 @@ import NoPage from './pages/NoPage'
 import VerifyPending from './components/Verify'
 
 import {useAuth} from './lib/auth.js'
+import { useEffect } from 'react'
+import toast from 'react-hot-toast'
 
 function App() {
-  const {user,token} = useAuth()
-  const isLogin = !!user
-  // React.useEffect(()=>{
-  //   console.log('auth user changed', user, 'token:', token)
-  // },[user, token])
+  const {user,token,setUser,setToken} = useAuth()
+
+  console.log(user)
+  
+  const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
+
+  useEffect(()=>{
+    const tokenData = searchParams.get("token")
+    const userData = searchParams.get("user")
+    
+    const user = JSON.parse(decodeURIComponent(userData))  
+
+    if(!userData && !tokenData) return;
+
+    localStorage.setItem("token",tokenData)
+    localStorage.setItem("user",JSON.stringify(user))
+    console.log(JSON.stringify(user))
+
+    setToken(tokenData);
+    setUser(user);
+
+    toast.success("Google Login Successful");
+    navigate("/", { replace: true }); // To prevent the user from returning back to the authentication page
+  },[searchParams,navigate,setUser,setToken])
+
+  const isLogin = !!user && !!token
+
   const isAdmin = useLocation().pathname.startsWith('/admin')
 
   const location = useLocation()
@@ -32,8 +57,8 @@ function App() {
     <>
       {!isAdmin && !hide  && <Navbar isLogin={isLogin} />}
       <Routes>{!isLogin && <Route path="/register" element={<Register />} />}
-        <Route path="/login" element={<Register />} />
-        <Route path="/register/verify-pending" element={<VerifyPending />} />
+        {!isLogin && <Route path="/login" element={<Register />} />}
+        {!isLogin && <Route path="/register/verify-pending" element={<VerifyPending />} />}
         <Route path="/" element={<Home />} />
         <Route path="/movies" element={<Movie />} />
         <Route path="/movies/:id" element={<MovieDetails />} />

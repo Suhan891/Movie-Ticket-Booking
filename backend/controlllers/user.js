@@ -280,7 +280,7 @@ module.exports.refreshToken = async (req, res) => {
       message: "Refresh token reissued",
       accessToken,
       user: {
-        id: user.id,
+        id: user._id,
         email: user.email,
         isEmailVerified: user.isEmailVerified
       }
@@ -300,7 +300,7 @@ module.exports.logout = async(req,res)=>{
   res.clearCookie("refreshToken", { path: "/" });
 
   return res.status(200).json({
-    message: "Logged out",
+    message: "Successfully Logged out",
   });
 
 }
@@ -448,11 +448,102 @@ module.exports.googleAuthCallbackHandler = async (req,res)=>{
     try{
 
         const client = await getGoogleClient()
-        const {token} = await client.getToken(token)
+        const { tokens } = await client.getToken(code)
 
-        console.log("Client: ",client)
-        console.log("Token: ",token)
+        if(!tokens.id_token)
+            return res.status(500).json({
+                success: false,
+                message: "Google Token Id not received"
+            })
+
+        const ticket = await client.verifyIdToken({
+            idToken: tokens.id_token,
+            audience: process.env.GOOGLE_CLIENT_ID
+        })
+        const payload = ticket.getPayload()
+
+        const email = payload?.email
+        const isEmailVerified = payload?.email_verified
+
+        if (!email || !isEmailVerified) {
+        return res.status(400).json({
+            message: "Google email account is not verified",
+            });
+        }
+
+        console.log(payload?.picture)
+        const normalisedEmail = email.trim().toLowerCase()
+
+        const user = await User.findOne({email: normalisedEmail})
+
+        if(!user){
+            const randomPassword = crypto.randomBytes(16).toString("hex")
+            const passwordHash = await hashPassword({password: randomPassword})
+            user = await User.create({
+                email: normalisedEmail,
+                role: "user",
+                name: payload?.name,
+                password: passwordHash,
+                authProvider: "google",
+                isEmailVerified: true,
+                twoFactorEnabled: false
+            })
+            await user.save()
+        } else{
+            if(!user.isEmailVerified){
+                user.isEmailVerified = true
+                await user.save()
+            }
+        }
+
+        const accessToken = await createAccessToken({
+            _id: user._id,
+            role: user.role,
+            tokenVersion: user.tokenVersion
+        })
+
+        const refreshToken = await createRefresherToken({
+            _id: user._id,
+            tokenVersion: user.tokenVersion
+        })
+
+        res.cookie("refreshToken",refreshToken,{
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        })
+
+        const response = {
+            success: true,
+            message: "Google Login successfull",
+            accessToken,
+            user: {
+                id: user._id,
+                email: user.email,
+                isEmailVerified: user.isEmailVerified,
+                role: user.role,
+                name: user.name,
+                authProvider: user.authProvider
+            }
+        }
+
+        console.log(response)
+
+        const userData = {
+                email: user.email,
+                isEmailVerified: user.isEmailVerified,
+                role: user.role,
+                name: user.name,
+                authProvider: user.authProvider
+            }
+
+        const userStr = encodeURIComponent(JSON.stringify(userData))
+
+        return res.status(200).redirect(`http://localhost:5173/?token=${accessToken}&user=${userStr}`)
+        
     } catch(err){
+        console.log(err)
         return res.status(500).json({
             success: false,
             message: "Internal Server Error"

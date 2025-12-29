@@ -36,6 +36,11 @@ const userSchema = new mongoose.Schema({
       type: Number,
       default: 0,
     },
+    authProvider:{
+      type: String,
+      enum: ["website","google"],
+      default: "website"
+    }, 
     resetPasswordToken: {
       type: String,
       default: undefined,
