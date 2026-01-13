@@ -9,9 +9,17 @@ const movieSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    cast: {
+    casts: {
         type: [String],
-        required: true
+        required: true,
+        // name:{   // Will be used by creating cast different schema
+        //     type: String,
+        //     required: true
+        // },
+        // imageUrl: {
+        //     type: String,
+        //     required: true
+        // }
     },
     trailerUrl: {
         type: String,

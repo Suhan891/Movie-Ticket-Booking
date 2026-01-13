@@ -9,6 +9,8 @@ const cors = require("cors")
 const authRouter = require("./routes/auth");
 const userRouter = require("./routes/user");
 
+const movieRouter = require("./routes/movie");
+
 const corsOptions = {
     origin: "http://localhost:5173",
     credentials: true,
@@ -25,6 +27,8 @@ app.use(cookieParser());
 
 app.use("/auth",authRouter)
 app.use("/user",userRouter)
+
+app.use("/movie",movieRouter)
 
 app.listen(port,()=>{
     console.log(`Listening to port ${port}`);

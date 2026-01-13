@@ -15,7 +15,7 @@ const requireAuth = async (req,res,next) =>{
         const payload = verifyAccessToken(token);
 
         if(!payload)
-            return res.status(401).json({ message: "Token invalidated" });
+            return res.status(401).json({ message: "Token verification invalidated" });
 
         const user = await User.findById(payload._id)
         if(!user)
@@ -25,7 +25,7 @@ const requireAuth = async (req,res,next) =>{
             });
         
         if(user.tokenVersion !== payload.tokenVersion)
-            return res.status(401).json({ message: "Token invalidated" });
+            return res.status(401).json({ message: "Token version invalidated" });
 
         req.user = {
             id: user._id,

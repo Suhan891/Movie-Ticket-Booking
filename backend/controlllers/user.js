@@ -156,7 +156,7 @@ module.exports.verifyEmail = async(req,res)=>{
 module.exports.loginUser = async(req,res)=>{
     try {
         const {email,password} = req.body;
-    
+        // const {email,password,twoFactorCode} = req.body;
         if(!email || !password){
             return res.status(404).json({
                 success: false,
@@ -186,8 +186,16 @@ module.exports.loginUser = async(req,res)=>{
         if (!user.isEmailVerified) {
             return res.status(403).json({success: false, message: "Please verify your email before logging in..." });
         }
-        // console.log("Login of a verified user");
-        
+        if (!user.twoFactorEnabled) {
+            // if(twoFactorCode)
+            //     return res.status(400).json({
+            //         success: false, message: "Two Factor Code required" 
+            //     })
+            if(!user.twoFactorSecret)
+                 return res.status(400).json({
+                    success: false, message: "Two Factor Misconfigured" 
+                    })
+        }
 
         const accessToken = createAccessToken({
             _id: user._id,
@@ -548,5 +556,24 @@ module.exports.googleAuthCallbackHandler = async (req,res)=>{
             success: false,
             message: "Internal Server Error"
         })
+    }
+}
+
+module.exports.twoFASetupHandler = async(req,res)=>{
+    const authUser = req.user
+    if(!authUser)
+        return res.status(400).json({
+            success: false,
+            message: "User not authenticated"
+        })
+    try {
+        const user = await User.findById(authUser.id)
+        if(!user)
+            return res.status(400).json({
+        success: false,
+                message: ""
+    })
+    } catch (error) {
+        
     }
 }
