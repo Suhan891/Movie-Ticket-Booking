@@ -1,5 +1,5 @@
 const express = require("express")
-const { registerUser, loginUser, verifyEmail, refreshToken, logout, forgotPassword, resetPasswordHandler,  googleAuthStartHandler, googleAuthCallbackHandler } = require("../controlllers/user")
+const { registerUser, loginUser, verifyEmail, refreshToken, logout, forgotPassword, resetPasswordHandler,  googleAuthStartHandler, googleAuthCallbackHandler } = require("../controllers/user")
 const requireAuth = require("../middlewares/requireAuth")
 const limiter = require("../middlewares/rateLimiter")
 

@@ -3,10 +3,11 @@ const errorResponse = require("../util/errorResponse")
 
 const getMovie = async (id) => {
     try {
-        const movie = await Movies.findById(id)
-        return movie
+        const movie = await Movies.findById(id).lean()
+        console.log("Movie: ",movie)
+        return {movie , error: null}
     } catch (error) {
-        return error
+        return {movie:null, error}
     }
 }
 

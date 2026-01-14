@@ -1,4 +1,4 @@
-const mongoose = require("mongooose")
+const mongoose = require("mongoose")
 
 const movieSchema = new mongoose.Schema({
     name: {
@@ -34,7 +34,7 @@ const movieSchema = new mongoose.Schema({
         required: true
     },
     releaseDate:{
-        type: String,
+        type: Date,
         required: true
     },
     releasedStatus:{

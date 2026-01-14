@@ -13,7 +13,7 @@ const createMovie = async (req,res) => {
         return res.status(200).json(successResponse)
     } catch (error) {
         errorResponse.error = error
-        res.status(500).json(errorResponse)
+        return res.status(500).json(errorResponse)
     }
 }
 
@@ -21,28 +21,28 @@ const getMovies = async (req,res) => {
     try {
         const movies = await Movies.find({})
 
-        successResponse.message = "Movies added"
+        successResponse.message = "Movies Obtained"
         successResponse.data = movies
         return res.status(200).json(successResponse)
     } catch (error) {
         errorResponse.error = error
-        res.status(500).json(errorResponse)
+        return res.status(500).json(errorResponse)
     }
 }
 
 const getMovieById = async (req,res) => {
     const {movieId} = req.params
 
-    const {error,movie} = getMovie(movieId)
+    const {error,movie} = await getMovie(movieId)
 
     if(error){
         errorResponse.error = error
-        res.status(500).json(errorResponse)
+        return res.status(500).json(errorResponse)
     }
 
     if(!movie){
         errorResponse.message = "Movie not Found"
-        res.status(400).json(errorResponse)
+        return res.status(400).json(errorResponse)
     }
 
     successResponse.message = "Movies Found"
@@ -53,24 +53,24 @@ const getMovieById = async (req,res) => {
 const deleteMovie = async (req,res) => {
     try {
         const {movieId} = req.params
-        const {error,movie} = getMovie(movieId)
+        const {error,movie} = await getMovie(movieId)
 
         if(error){
         errorResponse.error = error
-        res.status(500).json(errorResponse)
+        return res.status(500).json(errorResponse)
         }
         if(!movie){
         errorResponse.message = "Movie not Found"
-        res.status(400).json(errorResponse)
+        return res.status(400).json(errorResponse)
         }
 
-        const removed = Movies.findByIdAndDelete(movieId)
+        const removed = await Movies.findByIdAndDelete(movieId)
         successResponse.message = "Movie Deleted"
         successResponse.data = removed
         return res.status(200).json(successResponse)
     } catch (error) {
         errorResponse.error = error
-        res.status(500).json(errorResponse)
+        return res.status(500).json(errorResponse)
     }
 }
 
@@ -78,21 +78,23 @@ const updateMovie = async (req,res) => {
     try {
         const {movieId} = req.params
         const data = req.body
+        console.log("Data: ",data)
 
-        const {error,movie} = getMovie(movieId)
+        const {error,movie} = await getMovie(movieId)
 
         if(error){
         errorResponse.error = error
-        res.status(500).json(errorResponse)
+        return res.status(500).json(errorResponse)
         }
         if(!movie){
         errorResponse.message = "Movie not Found"
-        res.status(400).json(errorResponse)
+        return res.status(401).json(errorResponse)
         }
 
-        const updatedMovie = await Movies.findByIdAndUpdate(movieId,data,{new: true, runValidators: true})
+        const updatedMovie = await Movies.findByIdAndUpdate(movieId,{ $set: data },{new: true, runValidators: true})
         successResponse.message = "Movie Updated"
         successResponse.data = updatedMovie
+        return res.status(200).json(successResponse)
     } catch (error) {
         errorResponse.error = error
         res.status(500).json(errorResponse)

@@ -23,6 +23,7 @@ app.get("/",(req,res)=>{
 })
 
 app.use(express.json())
+app.use(express.urlencoded({ extended: true }));  // Highly required, too many unknown errors pastly on sending data in body
 app.use(cookieParser());
 
 app.use("/auth",authRouter)
