@@ -11,6 +11,16 @@ const getMovie = async (id) => {
     }
 }
 
+const findMovie = async (name) => {
+    try {
+        const movie = await Movies.findOne({name: name})
+        return {movie , error: null}
+    } catch (error) {
+        return {movie:null, error}
+    }
+}
+
 module.exports = {
-    getMovie
+    getMovie,
+    findMovie
 }

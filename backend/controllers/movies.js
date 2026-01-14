@@ -1,5 +1,5 @@
 const Movies = require("../models/movies")
-const { getMovie } = require("../service/checkMovieId")
+const { getMovie, findMovie } = require("../service/checkMovieId")
 const errorResponse = require("../util/errorResponse")
 const successResponse = require("../util/successResponse")
 
@@ -101,10 +101,31 @@ const updateMovie = async (req,res) => {
     }
 }
 
+const fetchMovie = async (req,res) => {
+    const {name} = req.query // Later-> any field could be searched other than name
+    const {movie,error} = findMovie(name)
+
+    if(error){
+        errorResponse.error = error
+        return res.status(500).json(errorResponse)
+    }
+
+    if(!movie){
+        errorResponse.message = "Movie not Found"
+        return res.status(400).json(errorResponse)
+    }
+
+    successResponse.message = "Movies Found"
+    successResponse.data = movie
+    return res.status(200).json(successResponse)
+}
+
 module.exports = {
     createMovie,
     getMovies,
     getMovieById,
     updateMovie,
-    deleteMovie
+    deleteMovie,
+
+    fetchMovie
 }

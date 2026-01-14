@@ -1,4 +1,19 @@
+
 const mongoose = require("mongoose")
+
+const castSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true
+    },
+    role: {
+        type: String,
+        required: true
+    },
+    imsgeUrl: {
+        type: String,
+    }
+})
 
 const movieSchema = new mongoose.Schema({
     name: {
@@ -10,16 +25,8 @@ const movieSchema = new mongoose.Schema({
         required: true
     },
     casts: {
-        type: [String],
+        type: [String],  // Later-> type: [castSchema]
         required: true,
-        // name:{   // Will be used by creating cast different schema
-        //     type: String,
-        //     required: true
-        // },
-        // imageUrl: {
-        //     type: String,
-        //     required: true
-        // }
     },
     trailerUrl: {
         type: String,

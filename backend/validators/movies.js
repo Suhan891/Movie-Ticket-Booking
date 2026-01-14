@@ -11,8 +11,11 @@ const movieSchema = Joi.object({
     releasedStatus: Joi.string()
 })
 
-
+const searchSchema = Joi.object({
+    name: Joi.string().required()
+})
 
 module.exports = {
-    movieSchema
+    movieSchema,
+    searchSchema
 }
