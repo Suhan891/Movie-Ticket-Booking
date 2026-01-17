@@ -1,10 +1,13 @@
 const sendEmail = require("../lib/email");
 const {hashPassword,verifyPassword} = require("../lib/hashPassword");
 const {createToken,verifyAccessToken, createRefresherToken, verifyRefreshToken,createAccessToken, createEmailVerifyToken, verifyEmailVerifyToken} = require("../lib/token");
-const User = require("../models/user");
+const User = require("../models/user")
 const jwt = require("jsonwebtoken")
 const crypto = require("crypto")
 const {OAuth2Client} = require('google-auth-library');
+const {authenticator} = require("otplib");
+const successResponse = require("../util/successResponse");
+const errorResponse = require("../util/errorResponse");
 
 const getAppUrl = ()=>{
     return process.env.APP_URL
@@ -28,15 +31,8 @@ const getGoogleClient = async()=>{
 
 module.exports.registerUser = async(req,res)=>{
     try {
-        const {name,email,password} = req.body;
+        const {name,email,password} = req.data;
     
-        if(!name || !email || !password){
-            return res.status(404).json({
-                success: false,
-                message: "All the Credentials are not filled"
-            })
-        }
-
         const modifiedEmail = email.trim().toLowerCase()
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -73,7 +69,7 @@ module.exports.registerUser = async(req,res)=>{
         //     {expiresIn: "1d"}
         // )
 
-        const token =createEmailVerifyToken(user._id)
+        const token = createEmailVerifyToken(user._id)
         // Changed auth to user
         const verifyUrl = `${getAppUrl()}/auth/email-verify?token=${token}`
     
@@ -570,10 +566,68 @@ module.exports.twoFASetupHandler = async(req,res)=>{
         const user = await User.findById(authUser.id)
         if(!user)
             return res.status(400).json({
-        success: false,
-                message: ""
-    })
+            success: false,
+            message: "User noy found"
+        })
+        const secret = authenticator.generateSecret()
+        const issuer = "MovieBookingTicket"
+        const otpAuthUrl = authenticator.keyuri(user.email, issuer, secret)
+
+        user.twoFactorEnabled = false
+        user.twoFactorSecret = secret
+        await User.save()
+
+        successResponse.message = "2FA Setup done"
+        successResponse.data = otpAuthUrl
+        return res.status(200).json(successResponse)
     } catch (error) {
-        
+        errorResponse.error = error
+        return res.status(500).json(errorResponse)
     }
+}
+
+module.exports.twoFAVerifyHandler = async (req,res) => {
+    const authUser = req.user
+    if (!authUser) {
+    return res.status(401).json({
+      message: "Not authenticated User",
+    });
+  }
+  const { code } = req.body
+
+  if (!code) {
+    return res.status(400).json({
+      message: "Two factor code is required",
+    });
+  }
+  try {
+    const user = await User.findById(authUser._id)
+    if(!user)
+        return res.status(404).json({
+        success: false,
+        message: "User not available"
+    })
+    if (!user.twoFactorSecret) {
+      return res.status(400).json({
+        message: "You don't have 2fa setup yet.",
+      });
+    }
+    const isValid = authenticator.check(code, user.twoFactorSecret);
+
+    if (!isValid) {
+      return res.status(400).json({
+        message: "Invalid two factor code",
+      });
+    }
+
+    user.twoFactorEnabled = true
+    await user.save()
+    return res.status(400).json({
+        success: false,
+        user,
+        message: "Two Factor authentication succcssfully"
+    })
+  } catch (error) {
+    
+  }
 }

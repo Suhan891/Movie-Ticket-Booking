@@ -1,4 +1,4 @@
-successResponse = {
+let successResponse = {
     success: true,
     data : {},
     err: {},
