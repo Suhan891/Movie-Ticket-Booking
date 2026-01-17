@@ -1,3 +1,4 @@
+const Movies = require("../models/movies")
 const Theater = require("../models/theater")
 
 const getTheaters = async (data) => {
@@ -16,7 +17,14 @@ const getTheaters = async (data) => {
             let perPage = (data.limit) ? data.limit : 3
             pagination.skip = data.skip * perPage
         }
-        console.log("Query: ",query)
+
+        if(data && data.movieName){
+            const movie = await Movies.findOne({name: data.movieName})
+            console.log("Movie",movie)
+            query.movies = {$all: movie._id}
+        }
+        console.log(query)
+
         const theaters = await Theater.find(query).limit(pagination.limit || 3).skip(pagination.skip || 0)
         console.log(theaters)
         return ({theater: theaters,error: null})
@@ -27,7 +35,7 @@ const getTheaters = async (data) => {
 
 const getTheaterId = async (id) => {
     try {
-        const theater = await Theater.findById(id).lean()
+        const theater = await Theater.findById(id,{name:1, movies:1, address: 1}).populate("movies").lean()
         return {theater , error: null}
     } catch (error) {
         console.log(error)

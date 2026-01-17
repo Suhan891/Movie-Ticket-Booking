@@ -11,6 +11,8 @@ router.get("/:theaterId",getTheaterById)
 router.put("/update/:theaterId",validateTheaterId,validateTheater,updateTheater)
 router.delete("/delete/:theaterId",validateTheaterId,deleteTheater)
 
+// Will be making a separate rote to get all movies for a particular theater by movieId
+
 // router.patch("/:theaterId/movie/:movieId",validateTheaterId,addMovie)  // Single Add
 router.patch("/:theaterId/movie/add-many",validateTheaterId,validateMoviesBulk,addMovies)
 // router.delete("/:theaterId/movie/:movieId",validateTheaterId,removeMovie)  // Single Remove

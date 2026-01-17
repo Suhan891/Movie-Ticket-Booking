@@ -19,7 +19,7 @@ const createTheater = async (req,res) => {
 }
 
 const getAllTheater = async (req,res) => {
-    const data = req.params
+    const data = req.query
         
     const {theater,error} = await getTheaters(data)
     if(error){
