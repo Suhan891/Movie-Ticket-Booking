@@ -1,4 +1,5 @@
 const Movies = require("../models/movies")
+const { getMovie } = require("../service/checkMovieId")
 const { getTheaterId } = require("../service/theater")
 const errorResponse = require("../util/errorResponse")
 const { theaterSchema, movieIdSchema } = require("../validators/theater")
@@ -38,6 +39,26 @@ const validateTheaterId = async (req,res,next) => {
     console.log("Validation Theater successfull")
     next()
 }
+const validateMovieId = async (req,res,next) => {
+    const {movieId} = req.params
+    if(!movieId){
+        errorResponse.message = "Movie Id required"
+        return res.status(400).json(errorResponse)
+    }
+    const {movie,error} = await getMovie(movieId)
+    if(error){
+        errorResponse.error = error
+        return res.status(500).json(errorResponse)
+    }
+
+    if(!movie){
+        errorResponse.message = "Movie not Found"
+        return res.status(400).json(errorResponse)
+    }
+    req.movieId = movie._id
+    console.log("Validation Movies successfull")
+    next()
+}
 
 const validateMoviesBulk = async (req,res,next) => {
     // const { movieId } = req.body
@@ -67,5 +88,6 @@ const validateMoviesBulk = async (req,res,next) => {
 module.exports = {
     validateTheater,
     validateTheaterId,
+    validateMovieId,
     validateMoviesBulk
 }

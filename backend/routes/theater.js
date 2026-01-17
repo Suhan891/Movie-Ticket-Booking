@@ -1,6 +1,6 @@
 const express = require("express")
-const { getAllTheater, createTheater, getTheaterById, deleteTheater, updateTheater, addMovies, removeMovies } = require("../controllers/theater")
-const { validateTheater,validateMoviesBulk, validateTheaterId } = require("../middlewares/theater")
+const { getAllTheater, createTheater, getTheaterById, deleteTheater, updateTheater, addMovies, removeMovies, getMoviesForTheater } = require("../controllers/theater")
+const { validateTheater,validateMoviesBulk, validateTheaterId, validateMovieId } = require("../middlewares/theater")
 
 const router = express.Router()
 
@@ -11,7 +11,7 @@ router.get("/:theaterId",getTheaterById)
 router.put("/update/:theaterId",validateTheaterId,validateTheater,updateTheater)
 router.delete("/delete/:theaterId",validateTheaterId,deleteTheater)
 
-// Will be making a separate rote to get all movies for a particular theater by movieId
+router.get("/:theaterId/movie/:movieId",validateTheaterId,validateMovieId,getMoviesForTheater)
 
 // router.patch("/:theaterId/movie/:movieId",validateTheaterId,addMovie)  // Single Add
 router.patch("/:theaterId/movie/add-many",validateTheaterId,validateMoviesBulk,addMovies)

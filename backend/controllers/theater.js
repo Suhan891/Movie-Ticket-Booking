@@ -1,6 +1,6 @@
 const Theater = require("../models/theater")
 const { getMovie } = require("../service/checkMovieId")
-const { getTheaters, getTheaterId } = require("../service/theater")
+const { getTheaters, getTheaterId, availMovie } = require("../service/theater")
 const errorResponse = require("../util/errorResponse")
 const successResponse = require("../util/successResponse")
 
@@ -149,13 +149,31 @@ const removeMovies = async (req,res) => {
     }
 }
 
+const getMoviesForTheater = async (req,res) => {
+    const {movieId,theaterId} = req
+
+    const {movie,error} = await availMovie(theaterId,movieId)
+    if(error){
+        errorResponse.error = error
+        return res.status(500).json(errorResponse)
+    }
+    if(!movie){
+        errorResponse.message = "Movie not available On this theater"
+        return res.status(400).json(errorResponse)
+    }
+
+    successResponse.data = movie
+    successResponse.message = "Movie Available on Theater"
+    return res.status(200).json(successResponse)
+} 
+
 module.exports = {
     createTheater,
     getAllTheater,
     getTheaterById,
     deleteTheater,
     updateTheater,
-
+    getMoviesForTheater,
     addMovies,
     removeMovies
 }

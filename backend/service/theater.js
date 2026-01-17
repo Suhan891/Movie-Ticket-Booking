@@ -43,7 +43,30 @@ const getTheaterId = async (id) => {
     }
 }
 
+const availMovie = async (theaterId,movieId) => {
+    try {
+        console.log("In Avail Movie")
+        const theater = await Theater.findOne(
+            {_id: theaterId},
+            {movies: movieId}
+        ).populate({
+            path: "movies",
+            match: { _id: movieId }
+        })
+        console.log("Theater: ",theater)
+        const movie = theater.movies[0]
+        console.log("Movie: ",movie)
+        if(!theater || movie.length === 0)
+            return {error: null, movie: null}
+
+        return {error: null,movie}
+    } catch (error) {
+        return {error,movie: null}
+    }
+}
+
 module.exports = {
     getTheaters,
-    getTheaterId
+    getTheaterId,
+    availMovie
 }
