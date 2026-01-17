@@ -19,23 +19,23 @@ const createTheater = async (req,res) => {
 }
 
 const getAllTheater = async (req,res) => {
-        const data = req.params
+    const data = req.params
         
-        const {theater,error} = await getTheaters(data)
-        if(error){
+    const {theater,error} = await getTheaters(data)
+    if(error){
             errorResponse.error = error,
             errorResponse.message = "Searching theaters failed"
             return res.status(500).json(errorResponse)
-        }
+    }
 
-        if(!theater){
+    if(!theater){
             errorResponse.message = "No such theater available"
             return res.status(400).json(errorResponse)
-        }
+    }
 
-        successResponse.message = "Theaters Obtained"
-        successResponse.data = theater
-        return res.status(200).json(successResponse)
+    successResponse.message = "Theaters Obtained"
+    successResponse.data = theater
+    return res.status(200).json(successResponse)
 }
 
 const getTheaterById = async (req,res) => {
@@ -84,7 +84,7 @@ const deleteTheater = async (req,res) => {
 
 const updateTheater = async (req,res) => {
     try {
-        const {theaterId} = req.params
+        const {theaterId} = req
         const data = req.body
 
         const {error,theater} = await getTheaterId(theaterId)
@@ -97,6 +97,7 @@ const updateTheater = async (req,res) => {
         errorResponse.message = "Theater not Found"
         return res.status(401).json(errorResponse)
         }
+        console.log(theater)
 
         const updatedTheater = await Theater.findByIdAndUpdate(theaterId,{ $set: data },{new: true, runValidators: true})
         successResponse.message = "Theater Updated"
@@ -110,15 +111,18 @@ const updateTheater = async (req,res) => {
 
 const addMovies = async (req,res) => {
     try {
-        const {theater,movieIds} = req // Also be getting movies but not used
-        movieIds.forEach(movieId => {
-            theater.movies = movieId
-        })
-        await theater.save()
-        const addedMovies = theater.populate("movies")
-        
+        const {theaterId,movieIds} = req // Also be getting movies but not used
+        console.log("TheaterId: ",theaterId)
+        console.log("MovieId: ",movieIds)
+        const theater = await Theater.findByIdAndUpdate(
+            {_id: theaterId},
+            {$addToSet: { movies: {$each: movieIds}}},
+            {new: true}
+        )
+        console.log("Theater: ",theater)
+        const addedMovies = await theater.populate("movies")
         successResponse.data = addedMovies
-        successResponse.message = `${addedMovies.length} Movies added successfully`
+        successResponse.message = `${theater.movies.length} Movies added successfully`
         return res.status(200).json(successResponse)
     } catch (error) {
         errorResponse.error = error
@@ -128,17 +132,16 @@ const addMovies = async (req,res) => {
 
 const removeMovies = async (req,res) => {
     try {
-        const {theater,movieIds} = req
-        let removeMovies = theater.movies
-
-        movieIds.forEach(movieId => {
-            removeMovies = removeMovies.filter(smi => smi !== movieId)
-        })
-        theater.movies = removeMovies
-        await theater.save()
+        const {theaterId,movieIds} = req
+        
+        const theater = await Theater.findByIdAndUpdate(
+            {_id: theaterId},
+            {$pull: {movies: {$in: movieIds}}},
+            {new: true}
+        )
 
         successResponse.message = "Deleted Successfully"
-        successResponse.data = removeMovies
+        successResponse.data = await theater.populate("movies")
         return res.status(200).json(successResponse)
     } catch (error) {
         errorResponse.error = error

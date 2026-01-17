@@ -3,13 +3,22 @@ const Theater = require("../models/theater")
 const getTheaters = async (data) => {
     try {
         let query = {}
+        let pagination = {}
         if(data && data.name)
             query.name = data.name
         if(data && data.city)
             query.city = data.city
         if(data && data.pincode)
             query.pincode = data.pincode
-        const theaters = await Theater.find(query)
+        if(data && data.limit) // Limit -> How many records per page
+            pagination.limit = data.limit
+        if(data && data.skip){  // Skip -> How many records to ignore before fetching  or skip -> similar to page number
+            let perPage = (data.limit) ? data.limit : 3
+            pagination.skip = data.skip * perPage
+        }
+        console.log("Query: ",query)
+        const theaters = await Theater.find(query).limit(pagination.limit || 3).skip(pagination.skip || 0)
+        console.log(theaters)
         return ({theater: theaters,error: null})
     } catch (err) {
         return ({theater: null,error: err})
@@ -21,6 +30,7 @@ const getTheaterId = async (id) => {
         const theater = await Theater.findById(id).lean()
         return {theater , error: null}
     } catch (error) {
+        console.log(error)
         return {theater:null, error}
     }
 }
