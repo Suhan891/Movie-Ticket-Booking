@@ -18,6 +18,7 @@ const castSchema = new mongoose.Schema({
 const movieSchema = new mongoose.Schema({
     name: {
         type: String,
+        unique: true,
         required: true
     },
     description: {

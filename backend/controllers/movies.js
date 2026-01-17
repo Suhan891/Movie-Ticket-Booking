@@ -6,6 +6,7 @@ const successResponse = require("../util/successResponse")
 const createMovie = async (req,res) => {
     try {
         const details = req.body
+          // Later -> Addition of searching the new movie name with the existing movies and if existing name -> asking the user to give a unique movie name
         const movie = await Movies.create(details)
 
         successResponse.message = "Movie created"

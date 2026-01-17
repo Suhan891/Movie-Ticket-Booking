@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true,
+        select: false
     },
     role: {
         type: String,
@@ -32,6 +33,20 @@ const userSchema = new mongoose.Schema({
       type: String,
       default: undefined,
     },
+
+    phone: {
+      type: String,
+      trim: true
+    },
+    phoneVerified: {
+      type: Boolean,
+      default: false
+    },
+    verificationDeferred: { // Based on user's choice on selecting "Later"
+      type: Boolean,
+      default: true
+    },
+
     tokenVersion: {
       type: Number,
       default: 0,

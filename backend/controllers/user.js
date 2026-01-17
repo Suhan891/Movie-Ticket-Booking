@@ -388,7 +388,7 @@ module.exports.resetPasswordHandler = async(req,res)=>{
         const user = await User.findOne({
             resetPasswordToken: token,
             resetPasswordExpires: {$gt: new Date()}
-        })
+        }).select('+password')
 
         if(!user)
             return res.status(400).json({ message: "Invalid or expired token" });
