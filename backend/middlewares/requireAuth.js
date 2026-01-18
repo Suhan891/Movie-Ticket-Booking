@@ -32,6 +32,7 @@ const requireAuth = async (req,res,next) =>{
             email: user.email,
             name: user.name,
             role: user.role,
+            clientType: user.clientType ?? null,
             isEmailVerified: user.isEmailVerified,
         }
 
