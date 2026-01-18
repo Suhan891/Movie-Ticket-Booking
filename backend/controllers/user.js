@@ -1,6 +1,6 @@
 const sendEmail = require("../lib/email");
 const {hashPassword,verifyPassword} = require("../lib/hashPassword");
-const {createToken,verifyAccessToken, createRefresherToken, verifyRefreshToken,createAccessToken, createEmailVerifyToken, verifyEmailVerifyToken} = require("../lib/token");
+const {verifyAccessToken, createRefresherToken, verifyRefreshToken,createAccessToken, createEmailVerifyToken, verifyEmailVerifyToken} = require("../lib/token");
 const User = require("../models/user")
 const jwt = require("jsonwebtoken")
 const crypto = require("crypto")
@@ -31,19 +31,19 @@ const getGoogleClient = async()=>{
 
 module.exports.registerUser = async(req,res)=>{
     try {
-        const {name,email,password} = req.data;
+        const {name, email, password, role, clientType} = req.data;
     
-        const modifiedEmail = email.trim().toLowerCase()
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        // const modifiedEmail = email.trim().toLowerCase()
+        // const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-        if (!emailRegex.test(modifiedEmail)) {
-        return res.status(400).json({
-            success: false,
-            message: "Please provide a valid email address",
-        })
-        }
+        // if (!emailRegex.test(modifiedEmail)) {
+        // return res.status(400).json({
+        //     success: false,
+        //     message: "Please provide a valid email address",
+        // })
+        // }
 
-        const existingUser = await User.findOne({email: modifiedEmail})
+        const existingUser = await User.findOne({email: email})
     
         if(existingUser){
             return res.status(400).json({
@@ -57,17 +57,13 @@ module.exports.registerUser = async(req,res)=>{
             email: modifiedEmail,
             password: hashedPassword,
             name,
+            role,
+            clientType,
             isEmailVerified: false,
             twoFactorEnabled: false
         })
 
         console.log("USER CREATED:", user);
-    
-        // const token = jwt.sign(
-        //     {_id:user._id, type:"email_verify"},
-        //     process.env.EMAIL_VERIFY_SECRET,
-        //     {expiresIn: "1d"}
-        // )
 
         const token = createEmailVerifyToken(user._id)
         // Changed auth to user
@@ -136,6 +132,7 @@ module.exports.verifyEmail = async(req,res)=>{
             message: "Email Verification successfull",
             user: {
                 email: user.email,
+                role: user.role,
                 name: user.name,
                 isEmailVerified: user.isEmailVerified}
             })
@@ -182,19 +179,19 @@ module.exports.loginUser = async(req,res)=>{
         if (!user.isEmailVerified) {
             return res.status(403).json({success: false, message: "Please verify your email before logging in..." });
         }
-        if (!user.twoFactorEnabled) {
-            // if(twoFactorCode)
-            //     return res.status(400).json({
-            //         success: false, message: "Two Factor Code required" 
-            //     })
-            if(!user.twoFactorSecret)
-                 return res.status(400).json({
-                    success: false, message: "Two Factor Misconfigured" 
-                    })
-        }
+        // if (!user.twoFactorEnabled) {
+        //     // if(twoFactorCode)
+        //     //     return res.status(400).json({
+        //     //         success: false, message: "Two Factor Code required" 
+        //     //     })
+        //     if(!user.twoFactorSecret)
+        //          return res.status(400).json({
+        //             success: false, message: "Two Factor Misconfigured" 
+        //             })
+        // }
 
         const accessToken = createAccessToken({
-            _id: user._id,
+            _id: user.id,
             role: user.role,
             tokenVersion: user.tokenVersion
         })
@@ -413,23 +410,39 @@ module.exports.resetPasswordHandler = async(req,res)=>{
 
 module.exports.googleAuthStartHandler = async(req,res)=>{
 
+    const {role,clientType} = req.query
+    console.log("Role: ",role,"Client Type: ",clientType)
+
+    if (!["CUSTOMER", "CLIENT"].includes(role)) 
+        return res.status(400).send("Invalid role")
+    if(role === "CLIENT" && !["Theater", "Movie"].includes(clientType))
+        return res.status(400).send("Invalid Client Type")
+
+    let statePayload = {}
+    if (["CUSTOMER", "CLIENT"].includes(role)) 
+        statePayload.role = role
+    if(role === "CLIENT" && ["Theater", "Movie"].includes(clientType))
+        statePayload.clientType = clientType
     try {
         const client = await getGoogleClient()
-        console.log(client)
         if(!client)
             return res.status(401).json({
                 success: false,
                 message: "Google Client not received"
             })
+
+        const state = Buffer.from(
+        JSON.stringify(statePayload)
+        ).toString("base64")
     
         const url = client.generateAuthUrl({
             access_type: "offline",
             prompt: "consent",
-            scope: ["openid","email","profile"]
+            scope: ["openid","email","profile"],
+            state
         })
             // console.log(url)
-        
-    
+            
         return res.redirect(url)
     } catch (error) {
         return res.status(500).json({
@@ -440,8 +453,7 @@ module.exports.googleAuthStartHandler = async(req,res)=>{
 }
 
 module.exports.googleAuthCallbackHandler = async (req,res)=>{
-
-    const {code} = req.query
+    const {code,state} = req.query
 
     if(!code)
         return res.status(400).json({
@@ -449,6 +461,13 @@ module.exports.googleAuthCallbackHandler = async (req,res)=>{
             message: "Missing code in callback"
         })
 
+    const decoded = JSON.parse(
+    Buffer.from(state, "base64").toString()
+    )
+    const role = decoded.role
+    const clientType = decoded.clientType ?? null
+    console.log("Post Request")
+    console.log("Role: ",role,"Client Type: ",clientType)
     try{
 
         const client = await getGoogleClient()
@@ -478,14 +497,15 @@ module.exports.googleAuthCallbackHandler = async (req,res)=>{
         console.log(payload?.picture)
         const normalisedEmail = email.trim().toLowerCase()
 
-        const user = await User.findOne({email: normalisedEmail})
+        let user = await User.findOne({email: normalisedEmail})
 
         if(!user){
             const randomPassword = crypto.randomBytes(16).toString("hex")
             const passwordHash = await hashPassword({password: randomPassword})
             user = await User.create({
                 email: normalisedEmail,
-                role: "user",
+                role,
+                clientType,
                 name: payload?.name,
                 password: passwordHash,
                 authProvider: "google",
@@ -526,6 +546,7 @@ module.exports.googleAuthCallbackHandler = async (req,res)=>{
                 id: user._id,
                 email: user.email,
                 isEmailVerified: user.isEmailVerified,
+                twoFactorEnabled: user.twoFactorEnabled,
                 role: user.role,
                 name: user.name,
                 authProvider: user.authProvider
@@ -622,12 +643,13 @@ module.exports.twoFAVerifyHandler = async (req,res) => {
 
     user.twoFactorEnabled = true
     await user.save()
-    return res.status(400).json({
-        success: false,
+    return res.status(200).json({
+        success: true,
         user,
         message: "Two Factor authentication succcssfully"
     })
   } catch (error) {
-    
+        errorResponse.error = error
+        return res.status(500).json(errorResponse)
   }
 }

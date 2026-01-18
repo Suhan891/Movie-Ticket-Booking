@@ -95,7 +95,7 @@ const updateTheater = async (req,res) => {
         }
         if(!theater){
         errorResponse.message = "Theater not Found"
-        return res.status(401).json(errorResponse)
+        return res.status(404).json(errorResponse)
         }
         console.log(theater)
 

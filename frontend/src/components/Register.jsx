@@ -6,10 +6,14 @@ import { Eye,EyeOff } from 'lucide-react';
 
 const AuthForm = () => {
   const navigate = useNavigate()
+  const [isClient,setIsClient] = useState(false)
+  const [isMovie,setIsMovie] = useState(true)
   const [formData, setFormData] = useState({
     name: "",
     password: "",
-    email: ""
+    email: "",
+    role: "",
+    clientType: ""
   })
   
   const [errors, setErrors] = useState({})
@@ -61,6 +65,11 @@ const AuthForm = () => {
     e.preventDefault()
     if(!validateForm()) { toast.error('Invalis form details'); return }
 
+    const payload = {
+        ...formData,
+        role: isClient ? "CLIENT" : "CUSTOMER",
+        clientType: isClient ? (isMovie ? "Movie" : "Theater") : undefined
+    };
     if(isLogin){
       await loginAuth({
         email: formData.email,
@@ -68,18 +77,24 @@ const AuthForm = () => {
       })
       navigate("/")
     } else {
-      await registerAuth({
-        name: formData.name,
-        email: formData.email,
-        password: formData.password
-      })
-       navigate("/register/verify-pending");
+      
+      console.log(payload)
+      // await registerAuth({
+      //   name: formData.name,
+      //   email: formData.email,
+      //   password: formData.password,
+      //   role: formData.role,
+      //   clientType: formData.clientType
+      // })
+      await registerAuth(payload)
+      navigate("/register/verify-pending");
     }
-
     setFormData({
       name: "",
       password: "",
-      email: ""
+      email: "",
+      role: "",
+      clientType: ""
     })
 
   }
@@ -95,7 +110,31 @@ const AuthForm = () => {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-gray-800 py-8 px-4 shadow sm:rounded-lg sm:px-10 border border-gray-700">
-          
+
+          {!isLogin && (<div className="grid grid-cols-2 gap-1 p-1 mb-6 bg-gray-700/50 rounded-lg border border-gray-600">
+            <button
+              type="button"
+              onClick={() => setIsClient(false)}
+              className={`py-2 text-sm font-medium rounded-md transition-all duration-200 cursor-pointer ${
+                !isClient
+                  ? 'bg-indigo-600 text-white shadow-sm ring-1 ring-white/10'
+                  : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700/50'
+              }`}
+            >
+              Personal
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsClient(true)} // Default to first partner type
+              className={`py-2 text-sm font-medium rounded-md transition-all duration-200 cursor-pointer ${
+                isClient
+                  ? 'bg-indigo-600 text-white shadow-sm ring-1 ring-white/10'
+                  : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700/50'
+              }`}
+            >
+              Partner
+            </button>
+          </div>)}
           <form className="space-y-6" action="#" method="POST" onSubmit={handleSubmit}>
             
             {/* Name Field - Only visible during Sign Up */}
@@ -184,6 +223,36 @@ const AuthForm = () => {
               </div>
             )}
 
+            {!isLogin && isClient && (
+            <div className="mt-6">
+              <p className="text-center text-sm text-gray-400 mb-3">Select Client Type</p>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsMovie(true)}
+                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium border transition-all duration-200 cursor-pointer ${
+                    isMovie
+                      ? 'bg-indigo-600 border-indigo-600 text-white'
+                      : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'
+                  }`}
+                >
+                  Movie Owner
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsMovie(false)}
+                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium border transition-all duration-200 cursor-pointer ${
+                    !isMovie
+                      ? 'bg-indigo-600 border-indigo-600 text-white'
+                      : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'
+                  }`}
+                >
+                  Theater Owner
+                </button>
+              </div>
+            </div>
+          )}
+
             {/* Submit Button */}
             <div>
               <button
@@ -210,7 +279,7 @@ const AuthForm = () => {
             <div className="mt-6 grid grid-cols-1 gap-3">
               <div>
                 <a
-                  href = "http://localhost:8080/auth/google"
+                  href = {`http://localhost:8080/auth/google?role=${isClient ?"CLIENT" : "CUSTOMER"}${isClient ? (isMovie ? "&clientType=Movie" : "&clientType=Theater") : ""}`}
                   className="inline-flex w-full justify-center rounded-md border border-gray-600 bg-gray-700 py-2 px-4 text-sm font-medium text-gray-500 shadow-sm hover:bg-gray-50"
                 >
                   <span className="sr-only">Sign in with Google</span>

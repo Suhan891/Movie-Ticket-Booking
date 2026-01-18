@@ -89,7 +89,7 @@ const updateMovie = async (req,res) => {
         }
         if(!movie){
         errorResponse.message = "Movie not Found"
-        return res.status(401).json(errorResponse)
+        return res.status(404).json(errorResponse)
         }
 
         const updatedMovie = await Movies.findByIdAndUpdate(movieId,{ $set: data },{new: true, runValidators: true})

@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(
     localStorage.getItem("token") || null
   );
-  // const [token,setToken] = useState(null)
+
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -37,16 +37,6 @@ export const AuthProvider = ({ children }) => {
     };
     loadUser();
   }, [token]);
-
-
-// useEffect(()=>{
-//   const storedToken = localStorage.getItem("token")
-//   const storedUser = localStorage.getItem("user")
-
-//   if (storedToken) setToken(storedToken);
-//   if (storedUser) setUser(JSON.parse(storedUser));
-
-// },[])
 
   // api is ready to handle all the website functionalities 
   api.interceptors.request.use(response=>
@@ -94,8 +84,6 @@ export const AuthProvider = ({ children }) => {
     try{
     const res = await client.post("/auth/login", data);
       // console.log(res)
-
-
     setUser(res.data.user);
 
     if (res.data.user) localStorage.setItem("user", JSON.stringify(res.data.user));

@@ -15,8 +15,20 @@ const userSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ["user","admin"],
-        default: "user"
+        enum: ["CUSTOMER","CLIENT","ADMIN"], // Changed from user and admin
+        default: "CUSTOMER" // from user
+    },
+    clientType: {
+      type: String,
+      enum: ["Movie","Theater"],
+      default: null,
+      required: function () {
+        return this.role === "CLIENT"
+      }
+    },
+    status: {
+      type: String,
+      enum: ["APPROVED","PENDING","REJECTED"],
     },
     isEmailVerified: {
         type: Boolean,
@@ -31,11 +43,12 @@ const userSchema = new mongoose.Schema({
     },
     twoFactorSecret: {
       type: String,
+      select: false,
       default: undefined,
     },
 
     phone: {
-      type: String,
+      type: String, // Later be changed to Number
       trim: true
     },
     phoneVerified: {
@@ -66,6 +79,13 @@ const userSchema = new mongoose.Schema({
     },
 },{
     timestamps: true
+})
+
+userSchema.pre("save",function(next){
+  if(this.isNew){ // Only while creating user
+    if(this.role === "CUSTOMER") // Customers are always approved to use
+      this.status = "APPROVED"
+  }
 })
 
 const User = mongoose.model("User",userSchema)

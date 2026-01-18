@@ -1,15 +1,5 @@
 const jwt = require("jsonwebtoken")
 
-// module.exports.createToken = ({userId, role, tokenVersion})=>{
-//     const payload = {_id:userId, role, tokenVersion}
-
-//     const token = jwt.sign(payload,
-//         process.env.ACCESS_TOKEN_SECRET,
-//         {expiresIn: "30m"}
-//     )
-//     return token
-// }
-
 module.exports.createEmailVerifyToken = (userId) => {
   return jwt.sign(
     { _id: userId, type: "email_verify" },
