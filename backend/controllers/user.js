@@ -43,14 +43,14 @@ module.exports.registerUser = async(req,res)=>{
         // })
         // }
 
-        const existingUser = await User.findOne({email: email})
+        // const existingUser = await User.findOne({email: email})
     
-        if(existingUser){
-            return res.status(400).json({
-                success: false,
-                message: "Email already registered"
-            })
-        }
+        // if(existingUser){
+        //     return res.status(400).json({
+        //         success: false,
+        //         message: "Email already registered"
+        //     })
+        // }
         const hashedPassword = await hashPassword({password: password})
     
         const user = await User.create({
@@ -525,11 +525,13 @@ module.exports.googleAuthCallbackHandler = async (req,res)=>{
             role: user.role,
             tokenVersion: user.tokenVersion
         })
+        console.log("Access Token: ",accessToken)
 
         const refreshToken = await createRefresherToken({
             _id: user._id,
             tokenVersion: user.tokenVersion
         })
+        console.log("Refresh Token: ",refreshToken)
 
         res.cookie("refreshToken",refreshToken,{
             httpOnly: true,

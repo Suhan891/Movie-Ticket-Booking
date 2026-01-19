@@ -30,7 +30,9 @@ const validateAdminOrTheater = (req,res,next) => {
 
 const validateCustomer = (req,res,next) => {
     const user = req.user
-    if(user.role != USER_ROLE.customer) {
+    console.log(user)
+    const allowedRoles = [USER_ROLE.admin, USER_ROLE.customer]
+    if(!allowedRoles.includes(user.role)) {
         errorResponse.message = "You Are Not Authorized with such a role"
         return res.status(STATUS_CODES.FORBIDDEN).json(errorResponse)
     } // Also checking of CLIENT_ROLE

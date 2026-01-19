@@ -2,7 +2,8 @@ const { verifyAccessToken } = require("../lib/token");
 const User = require("../models/user");
 
 const requireAuth = async (req,res,next) =>{
-    const authHeader = req.headers.Authorization
+    const authHeader = req.headers.authorization  // Lowercase because headers by default gets converted to lowecase
+    console.log(authHeader)
     if(!authHeader || !authHeader.startsWith("Bearer "))
         return res.status(401).json({
             success: false,
@@ -17,7 +18,8 @@ const requireAuth = async (req,res,next) =>{
         if(!payload)
             return res.status(401).json({ message: "Token verification invalidated" });
 
-        const user = await User.findById(payload._id)
+        let user = await User.findById(payload._id)
+        console.log("From requireAuth: ",user)
         if(!user)
             return res.status(400).json({
             success: false,
@@ -26,6 +28,8 @@ const requireAuth = async (req,res,next) =>{
         
         if(user.tokenVersion !== payload.tokenVersion)
             return res.status(401).json({ message: "Token version invalidated" });
+
+        console.log("I am from access token: ",user)  // This is not responding
 
         req.user = {
             id: user._id,

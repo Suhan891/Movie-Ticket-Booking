@@ -17,7 +17,7 @@ const castSchema = new mongoose.Schema({
 
 const movieSchema = new mongoose.Schema({
     createdBy: {
-        type: Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         index: true,
         // required: true

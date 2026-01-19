@@ -6,8 +6,8 @@ const USE_STATUS = {
 
 const USER_ROLE = {
     customer : "APPROVED",
-    client: "ADMIN",
-    admin: "CLIENT"
+    client: "CLIENT",
+    admin: "ADMIN"
 }
 
 const CLIENT_ROLE = {
@@ -25,9 +25,22 @@ const STATUS_CODES = {
     FORBIDDEN: 403
 }
 
+const MOVIE_STATUS = {
+    successfull: "SUCCESSFULL",
+    cancelled: "CANCELLED",
+    processing: "PROCESSING"
+}
+const PAYMENT_STATUS = {
+    success: "SUCCESS",
+    failed: "FAILED",
+    pending: "PENDING"
+}
+
 module.exports = {
     USE_STATUS,
     USER_ROLE,
     STATUS_CODES,
-    CLIENT_ROLE
+    CLIENT_ROLE,
+    MOVIE_STATUS,
+    PAYMENT_STATUS
 }

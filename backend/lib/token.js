@@ -24,7 +24,7 @@ module.exports.createAccessToken = ({_id,role,tokenVersion}) => {
   return jwt.sign(
     { _id,role,tokenVersion },
     process.env.ACCESS_TOKEN_SECRET,
-    { expiresIn: "15m" }
+    { expiresIn: "30d" } // Chaging time to handle backend related works
   );
 };
 
