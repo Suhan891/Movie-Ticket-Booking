@@ -13,7 +13,7 @@ const createBooking = async (req,res) => {
         const {timing, noOfSeats, totalCost, status} = data
     
         if(!isAvail){
-            errorResponse.message = "movie Not available at this theater"
+            errorResponse.message = "Movie Not available at this theater"
             return res.status(STATUS_CODES.BAD_REQUEST).json(errorResponse)
         }
         const booking = await Booking.create({
@@ -60,15 +60,45 @@ const upateBooking = async (req,res) => {
     }
 }
 
-// const getBooking = async (req,res) => {
-//     const {user} = req
-//     const userId = user.id
-//     if(req.query){
+const getBooking = async (req,res) => {
+    const {user} = req
+    const userId = user.id
+    try {
+        const booking = await Booking.find({userId: userId}).sort({ createdAt: -1 })
+        if(!booking){  // Keeping it a success Response as user may not have any bookings available
+            successResponse.message = "Currently No booking"
+            successResponse.data = null
+            return res.status(STATUS_CODES.OK).json(successResponse)
+        }
 
-//     }
-// }
+        successResponse.message = "Bookings Found Successfully"
+        successResponse.data = booking
+        return res.status(STATUS_CODES.OK).json(successResponse)
+    } catch (error) {
+        errorResponse.error = error
+        return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json(errorResponse)
+    }
+}
+
+const showBooking = async (req,res) => {
+    
+    const booking = req.booking
+    const bookingDetails = {
+        timing: booking.timing,
+        noOfSeats: booking.noOfSeats,
+        totalCost: booking.totalCost,
+        status: booking.status
+    }
+    console.log(bookingDetails)
+
+    successResponse.message = "Bookings Found Successfully"
+    successResponse.data = bookingDetails
+    return res.status(STATUS_CODES.OK).json(successResponse)
+}
 
 module.exports = {
     createBooking,
-    upateBooking
+    upateBooking,
+    getBooking,
+    showBooking
 }

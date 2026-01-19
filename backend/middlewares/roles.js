@@ -36,6 +36,7 @@ const validateCustomer = (req,res,next) => {
         errorResponse.message = "You Are Not Authorized with such a role"
         return res.status(STATUS_CODES.FORBIDDEN).json(errorResponse)
     } // Also checking of CLIENT_ROLE
+    
     next()
 }
 
