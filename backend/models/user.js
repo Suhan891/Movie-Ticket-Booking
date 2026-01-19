@@ -1,6 +1,6 @@
 const mongoose = require("mongoose")
 
-const userSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema({ 
     email:{
         type: String,
         unique: true,
@@ -34,6 +34,7 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    // Will Be Made another schema to validate user for 24hrs before email verification
     name: {
         type: String
     },

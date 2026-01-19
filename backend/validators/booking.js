@@ -7,4 +7,13 @@ const bookingSchema = Joi.object({
     status: Joi.string().valid("SUCCESSFULL","CANCELLED","PROCESSING")
 })
 
-module.exports = bookingSchema
+const updateBookingSchema = Joi.object({
+    timing: Joi.string(),
+    noOfSeats: Joi.number(),
+    status: Joi.string().valid("SUCCESSFULL","CANCELLED","PROCESSING")
+})
+
+module.exports = {
+    bookingSchema,
+    updateBookingSchema
+}
