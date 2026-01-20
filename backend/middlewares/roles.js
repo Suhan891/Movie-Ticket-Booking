@@ -3,7 +3,7 @@ const errorResponse = require("../util/errorResponse")
 
 const validateAdminOrClient = (req,res,next) => {
     const user = req.user
-    if(user.role !== USER_ROLE.admin || (user.role !== USER_ROLE.client  )) { // Also checking of CLIENT_ROLE -> Later
+    if(user.role !== USER_ROLE.admin && user.role !== USER_ROLE.client ) { // Also checking of CLIENT_ROLE -> Later
         errorResponse.message = "You Are Not Authorized with such a role"
         return res.status(STATUS_CODES.FORBIDDEN).json(errorResponse)
     } 
@@ -12,7 +12,7 @@ const validateAdminOrClient = (req,res,next) => {
 
 const validateAdminOrMovie = (req,res,next) => {
     const user = req.user
-    if(user.role !== USER_ROLE.admin || (user.role !== USER_ROLE.client && user.clientType != CLIENT_ROLE.movie  )) { // Also checking of CLIENT_ROLE -> Later
+    if(user.role !== USER_ROLE.admin && user.role !== USER_ROLE.client && user.clientType != CLIENT_ROLE.movie  ) { // Also checking of CLIENT_ROLE -> Later
         errorResponse.message = "You Are Not Authorized with such a role"
         return res.status(STATUS_CODES.FORBIDDEN).json(errorResponse)
     } 
@@ -21,7 +21,7 @@ const validateAdminOrMovie = (req,res,next) => {
 
 const validateAdminOrTheater = (req,res,next) => {
     const user = req.user
-    if(user.role !== USER_ROLE.admin || (user.role !== USER_ROLE.client && user.clientType != CLIENT_ROLE.theater  )) { // Also checking of CLIENT_ROLE -> Later
+    if(user.role !== USER_ROLE.admin && user.role !== USER_ROLE.client && user.clientType != CLIENT_ROLE.theater ) { // Also checking of CLIENT_ROLE -> Later
         errorResponse.message = "You Are Not Authorized with such a role"
         return res.status(STATUS_CODES.FORBIDDEN).json(errorResponse)
     } 
@@ -40,9 +40,20 @@ const validateCustomer = (req,res,next) => {
     next()
 }
 
+const validateTheaterOrCustomer = (req, res, next) => {
+    const user = req.user
+    if(user.role !== USER_ROLE.admin && user.role !== USER_ROLE.customer && user.role !== USER_ROLE.client && user.clientType != CLIENT_ROLE.theater ) {
+        errorResponse.message = "You Are Not Authorized with such a role"
+        return res.status(STATUS_CODES.FORBIDDEN).json(errorResponse)
+    }
+    
+    next()
+}
+
 module.exports = {
     validateAdminOrClient,
     validateCustomer,
     validateAdminOrMovie,
-    validateAdminOrTheater
+    validateAdminOrTheater,
+    validateTheaterOrCustomer
 }

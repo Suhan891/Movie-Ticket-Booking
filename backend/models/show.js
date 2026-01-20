@@ -7,7 +7,7 @@ const showSchema = new Schema({
         ref: "Theater",
         required: true
     },
-    movieId: {
+    movieId: {  // This will be given as unique -> true later
         type: Schema.Types.ObjectId,
         ref: "Movies",
         required: true

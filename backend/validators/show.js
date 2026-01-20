@@ -8,6 +8,15 @@ const showSchema = Joi.object({
     seatType: Joi.array().items(Joi.string())
 })
 
+const updateShowSchema = Joi.object({
+    timing: Joi.string(),
+    price: Joi.string(),
+    noOfSeats: Joi.number(),
+    format: Joi.string(),
+    seatType: Joi.array().items(Joi.string())
+})
+
 module.exports = {
-    showSchema
+    showSchema,
+    updateShowSchema
 }
