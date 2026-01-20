@@ -3,7 +3,10 @@ const errorResponse = require("../util/errorResponse")
 const { movieSchema, searchSchema } = require("../validators/movies")
 
 const validateMovie = async (req,res,next) => {
-    
+    if(!req.body){
+        errorResponse.message = "No request for response"
+        return res.status(400).json(errorResponse)
+    }
     const { error, value } = movieSchema.validate(req.body, { stripUnknown: true })  // stripUnknown will remove unnecessary data
     if(error){
         errorResponse.message = error.details[0].message

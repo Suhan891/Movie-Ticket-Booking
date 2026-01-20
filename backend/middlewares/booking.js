@@ -22,6 +22,10 @@ const validateMovieOnTheater = async (req,res,next) => {
 }
 
 const validateBooking = async (req,res,next) => {
+    if(!req.body){
+        errorResponse.message = "No request for response"
+        return res.status(400).json(errorResponse)
+    }
     const {error,value} = bookingSchema.validate(req.body, { stripeUnknown: true })
     if(error){
             errorResponse.message = error.details[0].message.replace(/"/g, "")
@@ -63,6 +67,10 @@ const validateBookingId = async (req,res,next) => {
 }
 
 const validateUpdateBooking = async (req,res,next) => {
+    if(!req.body){
+            errorResponse.message = "No request for response"
+            return res.status(400).json(errorResponse)
+        }
     const {error,value} = updateBookingSchema.validate(req.body, { stripeUnknown: true })
     if(error){
             errorResponse.message = error.details[0].message.replace(/"/g, "")

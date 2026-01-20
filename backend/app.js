@@ -12,6 +12,7 @@ const userRouter = require("./routes/user");
 const movieRouter = require("./routes/movie");
 const theaterRouter = require("./routes/theater");
 const bookingRouter = require("./routes/booking");
+const showRouter = require("./routes/show");
 
 const corsOptions = {
     origin: "http://localhost:5173",
@@ -34,6 +35,7 @@ app.use("/user",userRouter)
 app.use("/movie",movieRouter)
 app.use("/theater",theaterRouter)
 app.use("/booking",bookingRouter)
+app.use("/show",showRouter)
 
 app.listen(port,()=>{
     console.log(`Listening to port ${port}`);
