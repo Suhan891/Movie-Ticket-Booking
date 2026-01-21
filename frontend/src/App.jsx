@@ -11,6 +11,7 @@ import Favourite from './pages/Favourite'
 import Footer from './components/Footer'
 
 import Register from './components/Register'
+import ClientProfile from './components/ClientProfile'
 import NoPage from './pages/NoPage'
 import VerifyPending from './components/Verify'
 
@@ -59,6 +60,7 @@ function App() {
       <Routes>{!isLogin && <Route path="/register" element={<Register />} />}
         {!isLogin && <Route path="/login" element={<Register />} />}
         {!isLogin && <Route path="/register/verify-pending" element={<VerifyPending />} />}
+        <Route path="/profile" element={<ClientProfile/>} />
         <Route path="/" element={<Home />} />
         <Route path="/movies" element={<Movie />} />
         <Route path="/movies/:id" element={<MovieDetails />} />

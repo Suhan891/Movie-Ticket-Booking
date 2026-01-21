@@ -1,6 +1,6 @@
 const sendEmail = require("../lib/email");
 const {hashPassword,verifyPassword} = require("../lib/hashPassword");
-const {verifyAccessToken, createRefresherToken, verifyRefreshToken,createAccessToken, createEmailVerifyToken, verifyEmailVerifyToken} = require("../lib/token");
+const {verifyAccessToken, createRefresherToken, verifyRefreshToken,createAccessToken, createEmailVerifyToken, verifyEmailVerifyToken, createProfileToken} = require("../lib/token");
 const User = require("../models/user")
 const jwt = require("jsonwebtoken")
 const crypto = require("crypto")
@@ -8,6 +8,7 @@ const {OAuth2Client} = require('google-auth-library');
 const {authenticator} = require("otplib");
 const successResponse = require("../util/successResponse");
 const errorResponse = require("../util/errorResponse");
+const { STATUS_CODES } = require("../util/constants");
 
 const getAppUrl = ()=>{
     return process.env.APP_URL
@@ -54,7 +55,7 @@ module.exports.registerUser = async(req,res)=>{
         const hashedPassword = await hashPassword({password: password})
     
         const user = await User.create({
-            email: modifiedEmail,
+            email,
             password: hashedPassword,
             name,
             role,
@@ -118,14 +119,30 @@ module.exports.verifyEmail = async(req,res)=>{
             message: "Invalid verification token"
         });
         }
-        const user = await User.findById(payload._id)
+        let user = await User.findById(payload._id)
         if(!user) return res.status(404).json({success: false, message:"User not found with token"})
 
-        if(user.isEmailVerified)
-            return res.status(400).json({success: false, message:"Email is already verified"})
+        // if(user.isEmailVerified){
+        //     const url = `http://localhost:5173/login`
+        //     console.log("Email already registered")
+        //     return res.status(STATUS_CODES.OK).redirect(url)
+        // }
 
-        user.isEmailVerified = true
-        await user.save()
+        // user.isEmailVerified = true
+        // await user.save()
+
+        console.log(user)
+        // Redirect the Client to Profile Creation
+        if(user.role === "CLIENT" && user.clientType){
+            const token = createProfileToken(user._id)
+            const url = `http://localhost:5173/profile?token=${token}`
+            console.log("Profile Client should redirect")
+            // return res.status(STATUS_CODES.OK).redirect(url)
+            return res.status(STATUS_CODES.OK).json({
+                action: "PROFILE_REDIRECT",
+                redirectUrl: `http://localhost:5173/profile?token=${token}`
+            });
+        }
 
         return res.status(200).json({
             success: true,

@@ -12,6 +12,18 @@ module.exports.verifyEmailVerifyToken = (token) => {
   return jwt.verify(token, process.env.EMAIL_VERIFY_SECRET);
 };
 
+module.exports.createProfileToken = (userId) => {
+  return jwt.sign(
+    {_id: userId, type: "profile_creation"},
+    process.env.PROFILE_CREATION_SECRET,
+    {expiresIn: "24h"}
+  )
+}
+
+module.exports.verifyProfileToken = (token) => {
+  return jwt.verify(token, process.env.PROFILE_CREATION_SECRET)
+}
+
 module.exports.verifyAccessToken = (token) => {
   return jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
 };

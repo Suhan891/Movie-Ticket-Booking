@@ -19,6 +19,19 @@ export const AuthProvider = ({ children }) => {
 
   const navigate = useNavigate()
 
+    useEffect(() => {
+      const verifyEmail = async () => {
+    const res = await client.get("/auth/email-verify");
+
+    if (res.data.action === "PROFILE_REDIRECT") {
+      window.location.href = res.data.redirectUrl;
+    }
+  };
+
+  verifyEmail();
+},[])
+  
+
   useEffect(() => {
     const loadUser = async () => {
       const storedToken = localStorage.getItem("token");

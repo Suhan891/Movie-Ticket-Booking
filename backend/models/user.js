@@ -1,5 +1,25 @@
 const mongoose = require("mongoose")
 
+
+const clientSchema = new mongoose.Schema({
+  client_role: {
+    type: String,
+      enum: ["Movie","Theater"],
+      default: null,
+      required: function () {
+        return this.role === "CLIENT"
+      }
+  },
+  isProfile: {
+    type: Boolean,
+    default: false
+  },
+  profile: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Profile"
+  }
+})
+
 const userSchema = new mongoose.Schema({ 
     email:{
         type: String,
@@ -26,6 +46,16 @@ const userSchema = new mongoose.Schema({
         return this.role === "CLIENT"
       }
     },
+
+    isProfileVerified: {
+    type: Boolean,
+    default: false
+    },
+    client: {
+      type: clientSchema,
+      
+    },
+
     status: {
       type: String,
       enum: ["APPROVED","PENDING","REJECTED"],

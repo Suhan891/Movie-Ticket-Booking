@@ -8,6 +8,7 @@ const cors = require("cors")
 
 const authRouter = require("./routes/auth");
 const userRouter = require("./routes/user");
+const profileRouter = require("./routes/profile");
 
 const movieRouter = require("./routes/movie");
 const theaterRouter = require("./routes/theater");
@@ -31,6 +32,7 @@ app.use(cookieParser());
 
 app.use("/auth",authRouter)
 app.use("/user",userRouter)
+app.use("/profile",profileRouter)
 
 app.use("/movie",movieRouter)
 app.use("/theater",theaterRouter)
