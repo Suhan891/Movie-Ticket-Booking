@@ -1,3 +1,4 @@
+const Profile = require("../models/profile")
 const User = require("../models/user")
 
 const getUser = async (userId) => {
@@ -9,6 +10,16 @@ const getUser = async (userId) => {
     }
 }
 
+const accessProfile = async (profileId) => {
+    try {
+        const profile = await Profile.findById(profileId)
+        return {profile, error: null}
+    } catch (error) {
+        return {profile: null, error}
+    }
+}
+
 module.exports = {
-    getUser
+    getUser,
+    accessProfile
 }

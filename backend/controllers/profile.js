@@ -30,6 +30,7 @@ const createProfile = async (req,res) => {
     try {
         
         const profile = await Profile.create({
+            userId: user._id,
             name: user.name,
             email: user.email,
             imageUrl,
@@ -59,7 +60,51 @@ const createProfile = async (req,res) => {
     }
 }
 
+const showProfile = async (req,res) => {
+    const { profile } = req
+    const accessProfile = {
+        imageUrl: profile.imageUrl,
+        companyName: profile.companyName,
+        companyRole: profile.companyRole,
+        alternateEmail: profile.alternateEmail,
+        websiteUrl: profile.websiteUrl,
+        industryType: profile.industryType,
+        organizationSize: profile.organizationSize,
+        onboardingStage: profile.onboardingStage
+    }
+
+    successResponse.data = accessProfile
+    successResponse.message = "Profile Found"
+    return res.status(200).json(successResponse)
+}
+
+const upateProfile = async (req,res) => {
+    const {profile, data} = req
+    const profileId = profile._id
+    try {
+        const updatedProfile = Profile.findByIdAndUpdate(profileId, data, { new: true, runValidators: true }) 
+        const accessProfile = {
+            imageUrl: updatedProfile.imageUrl,
+            companyName: updatedProfile.companyName,
+            companyRole: updatedProfile.companyRole,
+            alternateEmail: updatedProfile.alternateEmail,
+            websiteUrl: updatedProfile.websiteUrl,
+            industryType: updatedProfile.industryType,
+            organizationSize: updatedProfile.organizationSize,
+            onboardingStage: updatedProfile.onboardingStage
+        }
+        successResponse.data = accessProfile
+        successResponse.message = "Profile Updated"
+        return res.status(200).json(successResponse)
+    } catch (error) {
+        errorResponse.error = error
+        return res.status(500).json(errorResponse)
+    }
+}
+
 module.exports = {
     getProfile,
-    createProfile
+    createProfile,
+    showProfile,
+    upateProfile
 }

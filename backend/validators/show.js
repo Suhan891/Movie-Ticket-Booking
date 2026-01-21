@@ -8,7 +8,7 @@ const showSchema = Joi.object({
     seatType: Joi.array().items(Joi.string())
 })
 
-const updateShowSchema = Joi.object({
+const updateShowSchema = Joi.object({  // should not be done -> will be removed later
     timing: Joi.string(),
     price: Joi.string(),
     noOfSeats: Joi.number(),

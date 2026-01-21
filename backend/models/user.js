@@ -18,7 +18,7 @@ const clientSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Profile"
   }
-})
+}, { _id: false })
 
 const userSchema = new mongoose.Schema({ 
     email:{

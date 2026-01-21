@@ -1,5 +1,6 @@
 const { verifyProfileToken } = require("../lib/token")
-const { getUser } = require("../service/profile")
+const { getUser, accessProfile } = require("../service/profile")
+const { USER_ROLE } = require("../util/constants")
 const errorResponse = require("../util/errorResponse")
 const { profileSchema } = require("../validators/profile")
 
@@ -59,8 +60,42 @@ const validateProfile = async (req,res,next) => {
     next()
 }
 
+const isProfile = async (req,res,next) => {
+    const { profileId } = req.params
+    if(!profileId){
+        errorResponse.message = "Profile Id is Required"
+        return res.status(401).json(errorResponse)
+    }
+
+    const {profile,error} = await accessProfile(profileId)
+    if(error){
+        errorResponse.error = error
+        return res.status(500).json(errorResponse)
+    }
+    if(!profile){
+        errorResponse.message = "Profile Does Not exists"
+        return res.status(400).json(errorResponse)
+    }
+
+    req.profile = profile
+    next()
+}
+
+const validateAccessProfile = async (req,res,next) => {
+    const {user,profile} = req
+
+    if( user.role !== USER_ROLE.admin && user.id !== profile.userId ){
+        errorResponse.message = "You are not the owner of the profile"
+        return res.status(400).json(errorResponse)
+    }
+
+    next()
+}
+
 module.exports = {
     accessToken,
     validateProfile,
-    findUser
+    findUser,
+    isProfile,
+    validateAccessProfile
 }

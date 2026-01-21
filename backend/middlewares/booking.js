@@ -71,7 +71,7 @@ const validateUpdateBooking = async (req,res,next) => {
             errorResponse.message = "No request for response"
             return res.status(400).json(errorResponse)
         }
-    const {error,value} = updateBookingSchema.validate(req.body, { stripeUnknown: true })
+    const {error,value} = updateBookingSchema.validate(req.body, { stripeUnknown: true })  // Has to be changed because if all the required fields are not provided 
     if(error){
             errorResponse.message = error.details[0].message.replace(/"/g, "")
             errorResponse.error = error

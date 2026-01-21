@@ -3,6 +3,11 @@ const {Schema} = mongoose
 
 // Only For Clients
 const profileSchema = new Schema({
+    userId:{
+        type: String,
+        required: true,
+        unique: true
+    },
     email:{
         type: String,
         unique: true,
