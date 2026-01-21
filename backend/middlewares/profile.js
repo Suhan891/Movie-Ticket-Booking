@@ -35,10 +35,10 @@ const findUser = async (req,res,next) => {
         return res.status(401).json(errorResponse)
     }
 
-    // if(!user.isEmailVerified){
-    //     errorResponse.message = "Verify Your Email"
-    //     return res.status(400).json(errorResponse)
-    // }
+    if(!user.isEmailVerified){
+        errorResponse.message = "Verify Your Email"
+        return res.status(400).json(errorResponse)
+    }
 
     req.user = user
     next()
@@ -84,7 +84,7 @@ const isProfile = async (req,res,next) => {
 const validateAccessProfile = async (req,res,next) => {
     const {user,profile} = req
 
-    if( user.role !== USER_ROLE.admin && user.id !== profile.userId ){
+    if( user.role !== USER_ROLE.admin && user.id.toString() !== profile.userId.toString() ){
         errorResponse.message = "You are not the owner of the profile"
         return res.status(400).json(errorResponse)
     }

@@ -6,6 +6,7 @@ module.exports.hashPassword = async ({password})=>{
     return hash
 }
 
-module.exports.verifyPassword = ({pass,existPass})=>{
-    return bcrypt.compare(pass,existPass)
+module.exports.verifyPassword = async ({pass,existPass})=>{
+    console.log(pass,existPass)
+    return (await bcrypt.compare(pass,existPass))
 }

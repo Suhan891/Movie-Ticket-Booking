@@ -23,6 +23,5 @@ const profileSchema = Joi.object({
 // })
 
 module.exports = {
-    profileSchema,
-    updateProfileSchema
+    profileSchema
 }

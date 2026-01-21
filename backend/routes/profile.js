@@ -8,7 +8,8 @@ const router = express.Router()
 
 router.get("/",accessToken,findUser,getProfile)
 router.post("/",accessToken,findUser,validateProfile,createProfile)
+// After login below functionallity will work
 router.get("/:profileId",requireAuth,validateAdminOrClient,isProfile,validateAccessProfile,showProfile)  // Show
-router.put("/:profileId/update",requireAuth,validateAdminOrClient,isProfile,validateAccessProfile,validateProfile,upateProfile)
+router.patch("/:profileId/update",requireAuth,validateAdminOrClient,isProfile,validateAccessProfile,validateProfile,upateProfile)
 
 module.exports = router

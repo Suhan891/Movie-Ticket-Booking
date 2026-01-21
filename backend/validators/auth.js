@@ -8,6 +8,12 @@ const signUpSchema = Joi.object({
     clientType: Joi.string().valid("Movie","Theater")
 })
 
+const loginSchema = Joi.object({
+    email: Joi.string().email().trim().lowercase().required(),
+    password: Joi.string().min(6).required()
+})
+
 module.exports = {
-    signUpSchema
+    signUpSchema,
+    loginSchema
 }

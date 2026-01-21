@@ -1,6 +1,6 @@
 const { findUser } = require("../service/auth")
 const errorResponse = require("../util/errorResponse")
-const { signUpSchema } = require("../validators/auth")
+const { signUpSchema, loginSchema } = require("../validators/auth")
 
 
 const validateSignup = async (req,res,next) => {
@@ -32,6 +32,23 @@ const validateSignup = async (req,res,next) => {
     next()
 }
 
+const validateLogin = async (req,res,next) => {
+    if(!req.body){
+            errorResponse.message = "No request for response"
+            return res.status(400).json(errorResponse)
+        }
+    const {error,value} = loginSchema.validate(req.body,{ stripUnknown: true })
+    console.log("I received: ",value)
+    if(error){
+        errorResponse.message = error.details[0].message.replace(/"/g, "")
+        errorResponse.error = error
+        return res.status(400).json(errorResponse)
+    }
+    req.data = value
+    next()
+}
+
 module.exports = {
-    validateSignup
+    validateSignup,
+    validateLogin
 }

@@ -82,8 +82,9 @@ const upateProfile = async (req,res) => {
     const {profile, data} = req
     const profileId = profile._id
     try {
-        const updatedProfile = Profile.findByIdAndUpdate(profileId, data, { new: true, runValidators: true }) 
-        const accessProfile = {
+        console.log("Receiving data: ",data)
+        const updatedProfile = await Profile.findByIdAndUpdate(profileId, data, { new: true, runValidators: true }) 
+        const accessdata = {
             imageUrl: updatedProfile.imageUrl,
             companyName: updatedProfile.companyName,
             companyRole: updatedProfile.companyRole,
@@ -93,7 +94,8 @@ const upateProfile = async (req,res) => {
             organizationSize: updatedProfile.organizationSize,
             onboardingStage: updatedProfile.onboardingStage
         }
-        successResponse.data = accessProfile
+        console.log(accessdata)
+        successResponse.data = accessdata
         successResponse.message = "Profile Updated"
         return res.status(200).json(successResponse)
     } catch (error) {

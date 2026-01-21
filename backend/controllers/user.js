@@ -165,26 +165,9 @@ module.exports.verifyEmail = async(req,res)=>{
 
 module.exports.loginUser = async(req,res)=>{
     try {
-        const {email,password} = req.body;
-        // const {email,password,twoFactorCode} = req.body;
-        if(!email || !password){
-            return res.status(404).json({
-                success: false,
-                message: "All the Credentials are not filled"
-            })
-        }
+        const {email,password} = req.data
 
-        const modifiedEmail = email.trim().toLowerCase()
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-        if (!emailRegex.test(modifiedEmail)) {
-        return res.status(400).json({
-            success: false,
-            message: "Please provide a valid email address",
-        })
-        }
-
-        const user = await User.findOne({email: modifiedEmail})
+        const user = await User.findOne({email}).select("+password")
 
         if(!user)
             return res.status(400).json({success: false, message:"User not found"})
@@ -212,7 +195,9 @@ module.exports.loginUser = async(req,res)=>{
             role: user.role,
             tokenVersion: user.tokenVersion
         })
+        console.log("Access token: ",accessToken)
         const refreshToken = createRefresherToken(user.id, user.tokenVersion);
+        console.log("Refresh token: ",refreshToken)
         if(!refreshToken || !accessToken) return res.status(501).json({success: false, message: "Token creation Unsuccessfull"})
 
         res.cookie("refreshToken",refreshToken,{
